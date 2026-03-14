@@ -2,67 +2,49 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>대한민국 공공정보 지도</title>
-<!--
-  ✅ GitHub Pages (https://)  → 모든 API 실시간
-  ✅ VS Code Live Server      → 모든 API 실시간
-  ⚠️ 파일 더블클릭 (file://) → CORS 차단 → 데모 표시 (정상)
-
-  로딩 전략
-  1단계(즉시) : 카카오맵 + 위치
-  2단계(자동) : 날씨 + 대기질만
-  3단계(버튼) : 나머지 8개 — 클릭 시 1회만 호출, 중복호출 없음
--->
 <link rel="preconnect" href="https://dapi.kakao.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Orbitron:wght@700&family=JetBrains+Mono&display=swap" rel="stylesheet">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=b18a5d05994ba4b8dc3e477dae5aa453&libraries=services&autoload=false"></script>
-
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Orbitron:wght@700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=b18a5d05994ba4b8dc3e477dae5aa453&libraries=services,clusterer,drawing&autoload=false"></script>
 <style>
-:root {
-  --bg:   #020a14;
-  --s1:   #04101e;
-  --s2:   #081828;
-  --bd:   rgba(0,150,255,.13);
-  --bdhi: rgba(0,150,255,.45);
-  --blue: #00aaff;
-  --green:#00ffaa;
-  --yel:  #ffd60a;
-  --ora:  #ff6b35;
-  --red:  #ff3055;
-  --teal: #5de4ff;
-  --vio:  #bf7fff;
-  --pink: #f472b6;
-  --txt:  #ddeeff;
-  --dim:  rgba(180,215,255,.45);
-  --mid:  rgba(210,230,255,.72);
-  --grid: rgba(0,80,200,.06);
-  --fb: 'Noto Sans KR','Apple SD Gothic Neo','맑은 고딕',sans-serif;
-  --fm: 'JetBrains Mono','Consolas',monospace;
-  --fd: 'Orbitron','Arial Black',sans-serif;
+:root{
+  --bg:#020a14;--s1:#04101e;--s2:#081828;
+  --bd:rgba(0,150,255,.13);--bdhi:rgba(0,150,255,.45);
+  --blue:#00aaff;--green:#00ffaa;--yel:#ffd60a;--ora:#ff6b35;
+  --red:#ff3055;--teal:#5de4ff;--vio:#bf7fff;--pink:#f472b6;
+  --txt:#ddeeff;--dim:rgba(180,215,255,.45);--mid:rgba(210,230,255,.72);
+  --grid:rgba(0,80,200,.06);--kosha:#f59e0b;
+  --fb:'Noto Sans KR',sans-serif;--fm:'JetBrains Mono',monospace;--fd:'Orbitron',sans-serif;
+  --hdr:48px;--loc:36px;--tab:52px;
+  --sidebar:340px;/* 좌우 패널 너비 */
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{font-size:14px}
-body{font-family:var(--fb);background:var(--bg);color:var(--txt);height:100vh;overflow:hidden}
+body{font-family:var(--fb);background:var(--bg);color:var(--txt);height:100dvh;overflow:hidden}
 body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
   background-size:40px 40px}
-::-webkit-scrollbar{width:3px}
-::-webkit-scrollbar-thumb{background:var(--bdhi);border-radius:3px}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--bdhi);border-radius:3px}
 
 /* 스캔라인 */
 .scan{position:fixed;left:0;right:0;height:1px;top:0;
   background:linear-gradient(90deg,transparent,rgba(0,170,255,.18),transparent);
   animation:scan 8s linear infinite;pointer-events:none;z-index:5}
 @keyframes scan{to{top:100vh}}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes wbl{0%,100%{border-color:rgba(255,48,85,.4)}50%{border-color:rgba(255,48,85,.9)}}
+@keyframes sk{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes abl{0%,100%{border-color:rgba(255,48,85,.22)}50%{border-color:rgba(255,48,85,.55)}}
+@keyframes tabglow{0%,100%{box-shadow:0 0 12px rgba(0,170,255,.3)}50%{box-shadow:0 0 24px rgba(0,170,255,.6)}}
+@keyframes tabglowK{0%,100%{box-shadow:0 0 12px rgba(245,158,11,.3)}50%{box-shadow:0 0 24px rgba(245,158,11,.6)}}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
 
 /* 로더 */
 #loader{position:fixed;inset:0;z-index:9999;background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  transition:opacity .5s}
+  display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s}
 .ld-logo{font-family:var(--fd);font-size:clamp(22px,4vw,34px);font-weight:700;
   letter-spacing:8px;color:var(--blue);text-shadow:0 0 30px rgba(0,170,255,.7);margin-bottom:6px}
 .ld-sub{font-size:11px;letter-spacing:3px;color:var(--dim);margin-bottom:36px}
@@ -71,253 +53,340 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .ld-msg{margin-top:14px;font-family:var(--fm);font-size:11px;color:var(--dim);height:16px;text-align:center}
 
 /* 헤더 */
-.hdr{position:relative;z-index:10;height:50px;
-  display:flex;align-items:center;justify-content:space-between;padding:0 18px;
-  background:rgba(2,10,20,.97);border-bottom:1px solid var(--bd)}
+.hdr{position:relative;z-index:20;height:var(--hdr);display:flex;align-items:center;
+  justify-content:space-between;padding:0 16px;
+  background:rgba(2,10,20,.98);border-bottom:1px solid var(--bd)}
 .hdr-l{display:flex;align-items:center;gap:10px}
-.hdr-ico{width:32px;height:32px;background:linear-gradient(135deg,var(--blue),#0044ee);
-  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;
+.hdr-ico{width:30px;height:30px;background:linear-gradient(135deg,var(--blue),#0044ee);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;
   box-shadow:0 0 14px rgba(0,170,255,.3)}
-.hdr-title{font-family:var(--fd);font-size:11px;letter-spacing:2px;color:var(--blue)}
-.hdr-sub{font-size:10px;color:var(--dim);margin-top:1px}
-.hdr-r{display:flex;align-items:center;gap:14px}
+.hdr-title{font-family:var(--fd);font-size:10px;letter-spacing:2px;color:var(--blue)}
+.hdr-sub{font-size:9px;color:var(--dim);margin-top:1px}
+.hdr-r{display:flex;align-items:center;gap:12px}
 .live{display:flex;align-items:center;gap:5px;font-family:var(--fm);font-size:10px;color:var(--dim)}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);animation:bl 2s infinite}
-@keyframes bl{0%,100%{opacity:1}50%{opacity:.3}}
-#clock{font-family:var(--fd);font-size:13px;color:var(--blue);letter-spacing:2px}
+#clock{font-family:var(--fd);font-size:12px;color:var(--blue);letter-spacing:2px}
 
 /* 위치바 */
-.locbar{position:relative;z-index:10;height:38px;
-  display:flex;align-items:center;gap:10px;padding:0 18px;
-  background:rgba(0,80,200,.03);border-bottom:1px solid var(--bd)}
-.loc-btn{display:flex;align-items:center;gap:5px;padding:5px 13px;
+.locbar{position:relative;z-index:19;height:var(--loc);display:flex;align-items:center;
+  gap:8px;padding:0 16px;background:rgba(0,80,200,.03);border-bottom:1px solid var(--bd)}
+.loc-btn{display:flex;align-items:center;gap:5px;padding:4px 12px;
   background:linear-gradient(135deg,var(--blue),#0050ee);border:none;border-radius:7px;
-  color:#fff;font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;
-  white-space:nowrap;box-shadow:0 0 12px rgba(0,170,255,.22);transition:transform .15s,box-shadow .15s}
+  color:#fff;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;
+  white-space:nowrap;box-shadow:0 0 12px rgba(0,170,255,.22);transition:all .15s}
 .loc-btn:hover{transform:translateY(-1px);box-shadow:0 3px 16px rgba(0,170,255,.4)}
-.loc-info{font-size:12px;color:var(--dim)}
+.loc-info{font-size:11px;color:var(--dim)}
 #locName{color:var(--txt);font-weight:700}
-#locCoord{font-family:var(--fm);font-size:10px;color:var(--dim);margin-left:4px}
-.loc-r{margin-left:auto;display:flex;align-items:center;gap:12px}
-.apc{font-family:var(--fm);font-size:10px;color:var(--dim)}
+#locCoord{font-family:var(--fm);font-size:9px;color:var(--dim);margin-left:4px}
+.loc-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.apc{font-family:var(--fm);font-size:9px;color:var(--dim)}
 .apc b{color:var(--green)}
-/* file:// 경고 배너 */
-.env-warn{font-family:var(--fm);font-size:10px;padding:3px 10px;
-  background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.25);
-  border-radius:10px;color:var(--ora);display:none}
+.env-warn{font-family:var(--fm);font-size:9px;padding:2px 8px;
+  background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.25);border-radius:10px;color:var(--ora);display:none}
+
+/* ══════════ 탭 바 (눈에 띄게 크게) ══════════ */
+.tabbar{position:relative;z-index:18;height:var(--tab);display:flex;align-items:stretch;
+  background:rgba(2,8,18,.99);border-bottom:3px solid var(--bd);padding:0 10px;gap:3px;
+  overflow-x:auto}
+.tabbar::-webkit-scrollbar{height:0}
+.tab-btn{
+  position:relative;display:flex;align-items:center;gap:8px;
+  padding:0 22px;background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  border-bottom:4px solid transparent;border-radius:8px 8px 0 0;
+  color:rgba(180,215,255,.5);font-family:var(--fb);font-size:13px;font-weight:700;
+  cursor:pointer;transition:all .25s;white-space:nowrap;margin-top:4px;min-width:160px;
+  justify-content:center}
+.tab-btn:hover{background:rgba(255,255,255,.07);color:var(--txt)}
+.tab-btn.active{
+  background:linear-gradient(180deg,rgba(0,120,255,.18) 0%,rgba(0,80,200,.08) 100%);
+  border-color:rgba(0,150,255,.25);border-bottom-color:var(--blue);
+  color:#fff;animation:tabglow 3s infinite}
+.tab-btn.active .tab-ico{animation:pulse 2s infinite}
+.tab-btn.kosha-tab.active{
+  background:linear-gradient(180deg,rgba(245,158,11,.2) 0%,rgba(200,120,0,.08) 100%);
+  border-color:rgba(245,158,11,.3);border-bottom-color:var(--kosha);
+  animation:tabglowK 3s infinite}
+.tab-ico{font-size:20px;line-height:1}
+.tab-label{display:flex;flex-direction:column;align-items:flex-start;gap:1px}
+.tab-name{font-size:13px;font-weight:700;line-height:1.2}
+.tab-desc{font-size:9px;font-weight:400;opacity:.6;line-height:1}
+.tab-badge{font-size:8px;padding:1px 6px;border-radius:8px;font-family:var(--fm);margin-left:auto}
+.tb-gen{background:rgba(0,170,255,.2);color:var(--blue);border:1px solid rgba(0,170,255,.4)}
+.tb-kosha{background:rgba(245,158,11,.2);color:var(--kosha);border:1px solid rgba(245,158,11,.4)}
+/* 탭 우측 공간 채움 */
+.tab-spacer{flex:1}
 
 /* 레이아웃 */
-.layout{position:relative;z-index:1;display:grid;
-  grid-template-columns:308px 1fr 292px;
-  grid-template-rows:1fr;
-  height:calc(100vh - 88px);
-  overflow:hidden}
+.main-wrap{
+  position:relative;z-index:1;
+  height:calc(100dvh - var(--hdr) - var(--loc) - var(--tab));
+  overflow:hidden
+}
+/* display:none 대신 visibility로 처리 → 지도 크기0 문제 해결 */
+.tab-content{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  visibility:hidden;pointer-events:none;
+  display:grid;grid-template-columns:var(--sidebar) 1fr var(--sidebar)
+}
+.tab-content.active{
+  visibility:visible;pointer-events:all;
+  position:relative
+}
 
 /* 패널 */
-.panel{overflow-y:auto;padding:11px 10px;display:flex;flex-direction:column;gap:8px;height:100%}
+.panel{overflow-y:auto;padding:10px 9px;display:flex;flex-direction:column;gap:7px;height:100%}
 .pl{border-right:1px solid var(--bd)}
 .pr{border-left:1px solid var(--bd)}
 .panel::-webkit-scrollbar{width:3px}
 .panel::-webkit-scrollbar-thumb{background:var(--bdhi);border-radius:3px}
-.sec{font-family:var(--fd);font-size:8px;letter-spacing:3px;color:var(--dim);
-  padding:2px 0 6px;border-bottom:1px solid var(--bd);margin-bottom:2px}
-
-/* 지도 */
-.mapwrap{position:relative;display:flex;flex-direction:column}
-#map{width:100%;flex:1;min-height:300px;background:var(--s1);display:block}
-.map-top{position:absolute;top:10px;left:10px;right:10px;
-  display:flex;justify-content:space-between;pointer-events:none;z-index:10}
-.mpill{display:flex;align-items:center;gap:4px;padding:4px 10px;
-  background:rgba(2,10,20,.88);border:1px solid var(--bd);border-radius:14px;
-  font-family:var(--fm);font-size:10px;color:var(--dim);backdrop-filter:blur(10px);pointer-events:all}
-.map-leg{position:absolute;bottom:10px;left:10px;z-index:10;display:flex;flex-wrap:wrap;gap:4px}
-.leg{padding:3px 8px;background:rgba(2,10,20,.85);border:1px solid var(--bd);
-  border-radius:11px;font-size:10px;color:var(--dim);backdrop-filter:blur(8px)}
+.sec{font-family:var(--fd);font-size:7.5px;letter-spacing:3px;color:var(--dim);
+  padding:2px 0 5px;border-bottom:1px solid var(--bd);margin-bottom:1px}
+.sec.k{color:rgba(245,158,11,.6)}
 
 /* 카드 */
 .card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;
-  position:relative;overflow:visible;transition:border-color .2s,background .2s}
+  position:relative;overflow:hidden;transition:border-color .2s,background .2s;cursor:pointer}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
   background:linear-gradient(90deg,transparent,var(--ca,var(--blue)),transparent)}
 .card:hover{border-color:var(--bdhi);background:var(--s2)}
-.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.card.kosha-card:hover{border-color:rgba(245,158,11,.35)}
+.card.no-click{cursor:default}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .ct{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700}
-.ci{font-size:14px;line-height:1}
+.ci{font-size:13px;line-height:1}
+/* 카드 클릭 힌트 */
+.card-detail-hint{font-size:9px;color:rgba(0,170,255,.4);margin-top:5px;text-align:right}
+.card-detail-hint.k{color:rgba(245,158,11,.4)}
 
 /* 뱃지 */
 .badge{font-family:var(--fm);font-size:9px;padding:2px 7px;border-radius:10px;border:1px solid;white-space:nowrap}
 .b-idle{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.1);color:var(--dim)}
 .b-load{background:rgba(255,214,10,.08);border-color:rgba(255,214,10,.3);color:var(--yel);animation:pl .8s infinite}
-.b-ok  {background:rgba(0,255,170,.07);border-color:rgba(0,255,170,.25);color:var(--green)}
+.b-ok{background:rgba(0,255,170,.07);border-color:rgba(0,255,170,.25);color:var(--green)}
 .b-demo{background:rgba(120,120,150,.07);border-color:rgba(120,120,150,.25);color:rgba(180,190,220,.6)}
 .b-warn{background:rgba(255,48,85,.1);border-color:rgba(255,48,85,.4);color:var(--red);animation:wbl 2s infinite}
-@keyframes pl{0%,100%{opacity:1}50%{opacity:.45}}
-@keyframes wbl{0%,100%{border-color:rgba(255,48,85,.4)}50%{border-color:rgba(255,48,85,.9)}}
 
 /* 값 */
-.cv {font-size:27px;font-weight:900;line-height:1;color:var(--ca,var(--blue))}
-.cu {font-size:12px;font-weight:400;color:var(--dim);margin-left:3px}
-.cd {font-size:11px;color:var(--dim);margin-top:4px;line-height:1.5}
+.cv{font-size:26px;font-weight:900;line-height:1;color:var(--ca,var(--blue))}
+.cu{font-size:11px;font-weight:400;color:var(--dim);margin-left:3px}
+.cd{font-size:10px;color:var(--dim);margin-top:3px;line-height:1.5}
 .crow{display:flex;justify-content:space-between;align-items:center;
   padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px}
 .crow:last-child{border-bottom:none}
 .crl{color:var(--dim)}
 .crv{font-weight:700;font-family:var(--fm)}
-.csrc{margin-top:6px;font-size:9px;font-family:var(--fm);color:rgba(0,170,255,.28)}
+.csrc{margin-top:5px;font-size:8.5px;font-family:var(--fm);color:rgba(0,170,255,.25)}
+.csrc.k{color:rgba(245,158,11,.3)}
 
-/* 대기 상태 */
-.idle-body{display:flex;flex-direction:column;align-items:center;
-  padding:6px 0;gap:5px;text-align:center}
-.idle-ico{display:none}
-.idle-txt{font-size:10px;color:var(--dim);line-height:1.4}
-
-/* 불러오기 버튼 */
+/* 대기 버튼 */
+.idle-body{display:flex;flex-direction:column;align-items:center;padding:4px 0;gap:4px;text-align:center}
+.idle-txt{font-size:10px;color:var(--dim)}
 .lbtn{display:flex;align-items:center;justify-content:center;gap:5px;
-  width:100%;padding:7px 0;background:rgba(0,170,255,.08);
+  width:100%;padding:6px 0;background:rgba(0,170,255,.08);
   border:1px solid rgba(0,170,255,.28);border-radius:7px;
   color:var(--blue);font-family:var(--fb);font-size:11px;font-weight:700;
   cursor:pointer;transition:all .2s;margin-top:3px}
 .lbtn:hover{background:rgba(0,170,255,.16);border-color:var(--bdhi);transform:translateY(-1px)}
-.lbtn:active{transform:translateY(0)}
 .lbtn:disabled{opacity:.4;cursor:not-allowed;transform:none}
-.lbtn.red  {color:var(--red); background:rgba(255,48,85,.07); border-color:rgba(255,48,85,.28)}
-.lbtn.red:hover  {background:rgba(255,48,85,.15)}
+.lbtn.red{color:var(--red);background:rgba(255,48,85,.07);border-color:rgba(255,48,85,.28)}
+.lbtn.red:hover{background:rgba(255,48,85,.15)}
 .lbtn.green{color:var(--green);background:rgba(0,255,170,.07);border-color:rgba(0,255,170,.28)}
 .lbtn.green:hover{background:rgba(0,255,170,.15)}
-.lbtn.yel  {color:var(--yel); background:rgba(255,214,10,.07);border-color:rgba(255,214,10,.28)}
-.lbtn.yel:hover  {background:rgba(255,214,10,.15)}
-.lbtn.ora  {color:var(--ora); background:rgba(255,107,53,.07);border-color:rgba(255,107,53,.28)}
-.lbtn.ora:hover  {background:rgba(255,107,53,.15)}
-.lbtn.vio  {color:var(--vio); background:rgba(191,127,255,.07);border-color:rgba(191,127,255,.28)}
-.lbtn.vio:hover  {background:rgba(191,127,255,.15)}
-.lbtn.pink {color:var(--pink);background:rgba(244,114,182,.07);border-color:rgba(244,114,182,.28)}
-.lbtn.pink:hover {background:rgba(244,114,182,.15)}
-.lbtn.teal {color:var(--teal);background:rgba(93,228,255,.07);border-color:rgba(93,228,255,.28)}
-.lbtn.teal:hover {background:rgba(93,228,255,.15)}
+.lbtn.yel{color:var(--yel);background:rgba(255,214,10,.07);border-color:rgba(255,214,10,.28)}
+.lbtn.ora{color:var(--ora);background:rgba(255,107,53,.07);border-color:rgba(255,107,53,.28)}
+.lbtn.vio{color:var(--vio);background:rgba(191,127,255,.07);border-color:rgba(191,127,255,.28)}
+.lbtn.pink{color:var(--pink);background:rgba(244,114,182,.07);border-color:rgba(244,114,182,.28)}
+.lbtn.teal{color:var(--teal);background:rgba(93,228,255,.07);border-color:rgba(93,228,255,.28)}
+.lbtn.kosha{color:var(--kosha);background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.28)}
 
 /* 스켈레톤 */
-@keyframes sk{0%{background-position:-200% 0}100%{background-position:200% 0}}
-.sk{height:12px;border-radius:4px;margin:4px 0;
+.sk{height:12px;border-radius:4px;margin:3px 0;
   background:linear-gradient(90deg,rgba(255,255,255,.03) 25%,rgba(255,255,255,.07) 50%,rgba(255,255,255,.03) 75%);
   background-size:200%;animation:sk 1.4s infinite}
-.sk.h2{height:26px}.sk.h3{height:38px}.sk.w6{width:60%}.sk.w4{width:40%}
+.sk.h2{height:24px}.sk.h3{height:36px}.sk.w6{width:60%}.sk.w4{width:40%}
 
-/* AQI 바 */
-.aqibar{height:5px;border-radius:3px;background:rgba(255,255,255,.05);margin:6px 0 3px;overflow:hidden}
+/* 대기질 바 */
+.aqibar{height:5px;border-radius:3px;background:rgba(255,255,255,.05);margin:5px 0 2px;overflow:hidden}
 .aqifill{height:100%;border-radius:3px;transition:width 1s ease}
 
 /* 유가 바 */
-.oilbars{display:flex;flex-direction:column;gap:5px;margin-top:7px}
-.orow{display:flex;align-items:center;gap:6px}
-.ol{width:40px;font-size:10px;color:var(--dim);flex-shrink:0}
+.oilbars{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.orow{display:flex;align-items:center;gap:5px}
+.ol{width:38px;font-size:9px;color:var(--dim);flex-shrink:0}
 .ot{flex:1;height:4px;background:rgba(255,255,255,.04);border-radius:2px;overflow:hidden}
-.of{height:100%;background:linear-gradient(90deg,var(--ora),var(--yel));border-radius:2px;transition:width 1s ease}
-.op{width:65px;text-align:right;font-size:10px;font-family:var(--fm);color:var(--yel)}
+.of{height:100%;background:linear-gradient(90deg,var(--ora),var(--yel));border-radius:2px;transition:width 1s}
+.op{width:60px;text-align:right;font-size:10px;font-family:var(--fm);color:var(--yel)}
 
 /* 목록 */
-.lst{display:flex;flex-direction:column;gap:4px;margin-top:5px}
-.li{display:flex;align-items:center;gap:7px;padding:6px 8px;
+.lst{display:flex;flex-direction:column;gap:3px;margin-top:4px}
+.li{display:flex;align-items:center;gap:6px;padding:5px 7px;
   background:rgba(255,255,255,.02);border:1px solid var(--bd);border-radius:7px;
   cursor:pointer;transition:all .18s}
 .li:hover{background:rgba(0,170,255,.06);border-color:var(--bdhi)}
-.li-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.li-name{flex:1;font-size:11px;font-weight:500}
-.li-dist{font-size:10px;font-family:var(--fm);color:var(--dim)}
-.li-tag{font-size:9px;padding:1px 6px;border-radius:9px;flex-shrink:0}
+.li-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.li-name{flex:1;font-size:10px;font-weight:500;line-height:1.3}
+.li-dist{font-size:9px;font-family:var(--fm);color:var(--dim)}
+.li-tag{font-size:8.5px;padding:1px 5px;border-radius:9px;flex-shrink:0}
 
 /* 지진 */
 .eqlist{display:flex;flex-direction:column}
-.eqi{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.eqi{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer}
+.eqi:hover .eqloc{color:var(--blue)}
 .eqi:last-child{border-bottom:none}
-.eqmag{width:33px;height:33px;border-radius:7px;flex-shrink:0;
+.eqmag{width:30px;height:30px;border-radius:7px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--fd);font-size:11px;font-weight:700;border:1px solid;background:rgba(255,255,255,.02)}
-.eqloc{font-size:11px;font-weight:500}
-.eqtm{font-size:10px;color:var(--dim);font-family:var(--fm)}
+  font-family:var(--fd);font-size:10px;font-weight:700;border:1px solid;background:rgba(255,255,255,.02)}
+.eqloc{font-size:10px;font-weight:500}
+.eqtm{font-size:9px;color:var(--dim);font-family:var(--fm)}
 
-/* 재난 알림 */
-.alertbox{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;
+/* 재난 */
+.alertbox{display:flex;align-items:flex-start;gap:7px;padding:7px 9px;
   background:rgba(255,48,85,.07);border:1px solid rgba(255,48,85,.22);
-  border-radius:8px;margin-top:4px;animation:abl 3s infinite}
-@keyframes abl{0%,100%{border-color:rgba(255,48,85,.22)}50%{border-color:rgba(255,48,85,.55)}}
+  border-radius:8px;margin-top:3px;animation:abl 3s infinite}
 .att{font-size:11px;font-weight:700;color:var(--red)}
-.atb{font-size:10px;color:var(--mid);line-height:1.4;margin-top:1px}
+.atb{font-size:9px;color:var(--mid);line-height:1.4;margin-top:1px}
 
-/* 건설 스트라이프 */
-.danger{padding:9px 10px;
+/* 건설 */
+.danger{padding:8px 10px;
   background:repeating-linear-gradient(-45deg,rgba(255,107,53,.025),rgba(255,107,53,.025) 5px,transparent 5px,transparent 15px);
   border:1px solid rgba(255,107,53,.18);border-radius:8px}
-.dh{font-size:11px;font-weight:700;color:var(--ora);display:flex;align-items:center;gap:5px;margin-bottom:6px}
+.dh{font-size:11px;font-weight:700;color:var(--ora);display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.note{font-size:9px;color:rgba(255,160,50,.5);margin-top:4px;line-height:1.4}
+.erline{font-size:11px;font-weight:700;color:var(--red);margin-top:5px}
 
-.note  {font-size:10px;color:rgba(255,160,50,.5);margin-top:5px;line-height:1.45}
-.erline{font-size:11px;font-weight:700;color:var(--red);margin-top:6px}
+/* ══ 지도 영역 ══ */
+.mapwrap{position:relative;display:flex;flex-direction:column;height:100%}
+#map,#map2{width:100%;height:100%;background:var(--s1)}
 
-/* 반응형 */
-@media(max-width:1100px){.layout{grid-template-columns:260px 1fr 250px}}
+/* 지도 컨트롤 오버레이 */
+.map-top{position:absolute;top:8px;left:8px;right:8px;
+  display:flex;justify-content:space-between;pointer-events:none;z-index:10}
+.mpill{display:flex;align-items:center;gap:4px;padding:4px 10px;
+  background:rgba(2,10,20,.9);border:1px solid var(--bd);border-radius:14px;
+  font-family:var(--fm);font-size:10px;color:var(--dim);backdrop-filter:blur(10px);pointer-events:all}
+.map-controls{position:absolute;top:50px;right:8px;z-index:10;display:flex;flex-direction:column;gap:4px}
+.mc-btn{width:32px;height:32px;background:rgba(2,10,20,.9);border:1px solid var(--bd);
+  border-radius:8px;color:var(--dim);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(10px);transition:all .2s;pointer-events:all}
+.mc-btn:hover{background:rgba(0,100,200,.3);border-color:var(--bdhi);color:var(--txt)}
+.mc-btn.active{background:rgba(0,170,255,.2);border-color:var(--blue);color:var(--blue)}
+.map-leg{position:absolute;bottom:8px;left:8px;right:8px;z-index:10;
+  display:flex;flex-wrap:wrap;gap:3px}
+.leg{padding:2px 7px;background:rgba(2,10,20,.88);border:1px solid var(--bd);
+  border-radius:10px;font-size:9px;color:var(--dim);backdrop-filter:blur(8px)}
 
-/* ── 모바일 ── */
+/* 지도 타입 토글 */
+.map-type-bar{position:absolute;bottom:40px;right:8px;z-index:10;
+  display:flex;flex-direction:column;gap:3px}
+.mt-btn{padding:4px 8px;background:rgba(2,10,20,.9);border:1px solid var(--bd);
+  border-radius:7px;font-size:9px;color:var(--dim);cursor:pointer;
+  backdrop-filter:blur(10px);transition:all .2s;white-space:nowrap;font-family:var(--fm)}
+.mt-btn:hover{border-color:var(--bdhi);color:var(--txt)}
+.mt-btn.active{background:rgba(0,170,255,.15);border-color:var(--blue);color:var(--blue)}
+
+/* 지하철 패널 */
+.subway-panel{position:absolute;bottom:8px;left:8px;z-index:10;
+  background:rgba(2,10,20,.94);border:1px solid rgba(130,100,250,.35);
+  border-radius:10px;padding:8px 12px;backdrop-filter:blur(12px);display:none;min-width:200px}
+.subway-panel h4{font-size:10px;font-weight:700;color:var(--vio);margin-bottom:6px}
+
+/* ══ 모달 ══ */
+.modal-bg{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.78);
+  backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center}
+.modal-bg.hide{display:none}
+.modal{background:var(--s1);border:1px solid var(--bd);border-radius:14px;
+  width:min(680px,96vw);max-height:82vh;display:flex;flex-direction:column;
+  box-shadow:0 0 50px rgba(0,100,200,.2)}
+.modal.kosha-modal{border-color:rgba(245,158,11,.35);box-shadow:0 0 50px rgba(245,158,11,.12)}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:13px 16px;border-bottom:1px solid var(--bd)}
+.modal.kosha-modal .modal-hdr{border-bottom-color:rgba(245,158,11,.2)}
+.modal-title{font-size:14px;font-weight:700;color:var(--blue);display:flex;align-items:center;gap:8px}
+.modal.kosha-modal .modal-title{color:var(--kosha)}
+.modal-close{background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:7px;
+  color:var(--dim);font-size:15px;width:28px;height:28px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .2s}
+.modal-close:hover{background:rgba(255,48,85,.15);border-color:rgba(255,48,85,.4);color:var(--red)}
+.modal-body{overflow-y:auto;padding:14px 16px;flex:1}
+.modal-body::-webkit-scrollbar{width:3px}
+.modal-body::-webkit-scrollbar-thumb{background:var(--bdhi);border-radius:3px}
+.modal-tag{display:inline-block;font-size:9px;padding:2px 8px;border-radius:8px;font-family:var(--fm);
+  background:rgba(0,170,255,.12);border:1px solid rgba(0,170,255,.3);color:var(--blue);margin-bottom:10px}
+.modal-tag.k{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3);color:var(--kosha)}
+.modal-loading{text-align:center;padding:30px;color:var(--dim);font-size:12px}
+.mrow{display:flex;justify-content:space-between;align-items:flex-start;
+  padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:11px;gap:10px}
+.mrow:last-child{border-bottom:none}
+.mrl{color:var(--dim);flex-shrink:0;width:90px}
+.mrv{font-weight:600;color:var(--txt);text-align:right;line-height:1.4;word-break:break-all}
+.mitem{padding:8px;background:rgba(255,255,255,.02);border:1px solid var(--bd);
+  border-radius:8px;margin-bottom:6px}
+.mitem.k{background:rgba(245,158,11,.04);border-color:rgba(245,158,11,.12)}
+.mitem-title{font-size:11px;font-weight:700;color:var(--blue);margin-bottom:5px}
+.mitem.k .mitem-title{color:var(--kosha)}
+.mitem-sub{font-size:10px;color:var(--dim);line-height:1.55}
+.ksearch{display:flex;gap:6px;margin-bottom:10px}
+.ksearch input{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--bd);border-radius:7px;
+  color:var(--txt);font-family:var(--fb);font-size:11px;padding:6px 10px;outline:none;transition:border .2s}
+.ksearch input:focus{border-color:rgba(245,158,11,.5)}
+.ksearch input::placeholder{color:var(--dim)}
+.ksearch button{padding:6px 14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);
+  border-radius:7px;color:var(--kosha);font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+.ksearch button:hover{background:rgba(245,158,11,.22)}
+
+/* ══ 모바일 ══ */
+@media(max-width:1100px){
+  :root{--sidebar:300px}
+}
+@media(max-width:900px){
+  :root{--sidebar:260px}
+  .tab-btn{min-width:130px;padding:0 14px}
+  .tab-name{font-size:12px}
+}
 @media(max-width:768px){
+  :root{--hdr:44px;--loc:36px;--tab:56px;--sidebar:100%}
   html{font-size:13px}
   body{overflow:auto;height:auto}
-
-  /* 헤더 압축 */
-  .hdr{height:44px;padding:0 12px}
-  .hdr-title{font-size:10px;letter-spacing:1px}
+  .hdr{padding:0 12px}
+  .hdr-title{font-size:9px;letter-spacing:1px}
   .hdr-sub{display:none}
-  #clock{font-size:12px}
-
-  /* 위치바 */
-  .locbar{height:auto;padding:6px 12px;flex-wrap:wrap;gap:6px}
+  #clock{font-size:11px}
+  .locbar{padding:0 10px;flex-wrap:wrap;height:auto;padding:5px 10px;gap:5px}
   .loc-r{display:none}
-
-  /* 레이아웃: 세로 스택 */
-  .layout{display:block;height:auto;overflow:visible}
-
-  /* 지도: 상단 고정, 화면 절반 */
-  .mapwrap{
-    position:sticky;top:44px;z-index:50;
-    height:45vw;min-height:220px;max-height:320px;
-    border-bottom:2px solid var(--bd);
-  }
-
-  /* 패널: 일반 블록 */
-  .pl,.pr{
-    display:block;height:auto;overflow:visible;
-    border:none;border-top:1px solid var(--bd);
-    padding:10px 8px;
-  }
-  .panel{height:auto;overflow:visible}
-
-  /* 카드 가로 2열 그리드 */
-  .pl,  .pr{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:7px;
-    align-items:start;
-  }
-  /* sec 라벨은 full width */
-  .sec{grid-column:1/-1;margin-top:4px}
-
-  /* 카드 내부 폰트 조금 더 작게 */
-  .card{padding:9px 10px}
+  .tabbar{padding:0 6px;gap:2px;height:auto;padding:4px 6px}
+  .tab-btn{min-width:0;padding:6px 14px;flex-direction:row;border-radius:8px;
+    margin-top:0;border:1.5px solid rgba(255,255,255,.1)}
+  .tab-btn.active{border-bottom:1.5px solid var(--blue)}
+  .tab-btn.kosha-tab.active{border-bottom:1.5px solid var(--kosha)}
+  .tab-ico{font-size:16px}
+  .tab-name{font-size:12px}
+  .tab-desc{display:none}
+  .tab-badge{display:none}
+  /* 모바일 레이아웃 */
+  .main-wrap{height:auto;overflow:visible}
+  .tab-content{display:block;position:relative;height:auto;grid-template-columns:1fr;visibility:hidden;pointer-events:none}
+  .tab-content.active{visibility:visible;pointer-events:all;height:auto}
+  .mapwrap{height:55vw;min-height:240px;max-height:360px;
+    position:sticky;top:calc(var(--hdr) + var(--loc) + var(--tab));z-index:15;
+    border-bottom:2px solid var(--bd)}
+  #map,#map2{height:100%}
+  .pl,.pr{height:auto;overflow:visible;border:none;border-top:1px solid var(--bd);padding:8px}
+  .panel{height:auto;overflow:visible;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px}
+  .sec{grid-column:1/-1}
+  .card{padding:8px 10px}
   .cv{font-size:22px}
-
-  /* 버튼 터치 친화적 */
-  .lbtn{padding:10px 0;font-size:12px;border-radius:8px}
-  .loc-btn{padding:7px 14px;font-size:13px}
-
-  /* 하단 범례 숨김 */
-  .map-leg{display:none}
+  .map-controls{display:none}
+  .map-type-bar{display:none}
 }
-
-/* ── 아주 작은 화면 ── */
-@media(max-width:400px){
-  .pl,.pr{grid-template-columns:1fr}
+@media(max-width:440px){
+  .panel{grid-template-columns:1fr}
+  .tab-btn{padding:5px 10px}
 }
 </style>
 </head>
 <body>
-
 <div class="scan"></div>
 
 <!-- 로더 -->
@@ -326,6 +395,28 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   <div class="ld-sub">대한민국 공공정보 통합 지도</div>
   <div class="ld-track"><div class="ld-bar" id="ldbar"></div></div>
   <div class="ld-msg" id="ldmsg">지도 초기화 중...</div>
+</div>
+
+<!-- 공통 모달 -->
+<div class="modal-bg hide" id="infoModal">
+  <div class="modal" id="infoModalBox">
+    <div class="modal-hdr">
+      <div class="modal-title"><span id="modalIcon">ℹ️</span><span id="modalTitle">상세정보</span></div>
+      <button class="modal-close" onclick="closeModal('infoModal')">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- KOSHA 모달 -->
+<div class="modal-bg hide" id="koshaModal">
+  <div class="modal kosha-modal">
+    <div class="modal-hdr">
+      <div class="modal-title"><span id="kModalIcon">🦺</span><span id="kModalTitle">KOSHA</span></div>
+      <button class="modal-close" onclick="closeModal('koshaModal')">✕</button>
+    </div>
+    <div class="modal-body" id="kModalBody"></div>
+  </div>
 </div>
 
 <!-- 헤더 -->
@@ -348,52 +439,123 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   <button class="loc-btn" onclick="getLocation()">📍 내 위치</button>
   <div class="loc-info">위치: <span id="locName">확인 중...</span><span id="locCoord"></span></div>
   <div class="loc-r">
-    <div class="apc">API 호출 <b id="apiCnt">0</b>회</div>
+    <div class="apc">API호출 <b id="apiCnt">0</b>회</div>
     <div class="apc">업데이트 <b id="upd">-</b></div>
-    <div class="env-warn" id="envWarn">⚠ 로컬파일 모드 — VS Code Live Server 권장</div>
+    <div class="env-warn" id="envWarn">⚠ 로컬파일 — VS Code Live Server 권장</div>
   </div>
 </div>
 
-<!-- 3컬럼 -->
-<div class="layout">
+<!-- ══════════ 탭 바 ══════════ -->
+<div class="tabbar">
+  <button class="tab-btn active" id="tab-general" onclick="switchTab('general')">
+    <span class="tab-ico">🗺️</span>
+    <span class="tab-label">
+      <span class="tab-name">일반지도</span>
+      <span class="tab-desc">기상·환경·의료·교통</span>
+    </span>
+    <span class="tab-badge tb-gen">공공정보</span>
+  </button>
+  <button class="tab-btn kosha-tab" id="tab-kosha" onclick="switchTab('kosha')">
+    <span class="tab-ico">🦺</span>
+    <span class="tab-label">
+      <span class="tab-name">산업안전지도</span>
+      <span class="tab-desc">KOSHA·재해·화학·법령</span>
+    </span>
+    <span class="tab-badge tb-kosha">KOSHA</span>
+  </button>
+  <div class="tab-spacer"></div>
+</div>
 
-  <!-- 좌측 -->
-  <div class="panel pl">
-    <div class="sec">🌤 기상 · 환경 · 재난</div>
+<!-- ════════════════════════════════
+     일반지도 탭
+════════════════════════════════ -->
+<div class="main-wrap">
+<div class="tab-content active" id="content-general">
 
-    <div class="card" style="--ca:var(--teal)">
+  <!-- 좌측 패널 -->
+  <div class="panel pl" id="panelGenLeft">
+    <div class="sec">🌤 기상 · 환경</div>
+
+    <div class="card no-click" style="--ca:var(--teal)">
       <div class="ch"><div class="ct"><span class="ci">🌤</span>현재 날씨</div><span class="badge b-load" id="bw">로딩중</span></div>
       <div id="dw"><div class="sk h3"></div><div class="sk w6"></div><div class="sk w4"></div></div>
-      <div class="csrc">📡 기상청 초단기실황</div>
+      <div class="csrc">📡 기상청 초단기실황 (실시간)</div>
     </div>
 
-    <div class="card" style="--ca:var(--green)">
+    <div class="card no-click" style="--ca:var(--green)">
       <div class="ch"><div class="ct"><span class="ci">🌫</span>대기질 (에어코리아)</div><span class="badge b-load" id="ba">로딩중</span></div>
       <div id="da"><div class="sk h2"></div><div class="sk"></div><div class="sk w6"></div></div>
-      <div class="csrc">📡 환경부 에어코리아</div>
+      <div class="csrc">📡 환경부 에어코리아 (실시간)</div>
     </div>
 
-    <div class="card" style="--ca:var(--red)">
-      <div class="ch"><div class="ct"><span class="ci">🚨</span>재난 · 기상특보</div><span class="badge b-idle" id="bd">대기중</span></div>
-      <div id="dd"><div class="idle-body">
-<div class="idle-txt">기상특보 · 재난</div><button class="lbtn red" onclick="loadDisaster(this)">📡 불러오기</button></div></div>
+    <div class="card" onclick="openDetailCard('disaster')" style="--ca:var(--red)">
+      <div class="ch"><div class="ct"><span class="ci">🚨</span>재난·기상특보</div><span class="badge b-idle" id="bd">대기중</span></div>
+      <div id="dd"><div class="idle-body"><div class="idle-txt">기상특보·재난 알림</div>
+        <button class="lbtn red" onclick="event.stopPropagation();loadDisaster(this)">📡 불러오기</button></div></div>
       <div class="csrc">📡 기상청 WthrWrnInfoService</div>
     </div>
 
-    <div class="sec" style="margin-top:4px">🌍 지질 · 산업안전</div>
-
-    <div class="card" style="--ca:var(--ora)">
+    <div class="card" onclick="openDetailCard('eq')" style="--ca:var(--ora)">
       <div class="ch"><div class="ct"><span class="ci">🌍</span>지진 정보</div><span class="badge b-idle" id="beq">대기중</span></div>
-      <div id="deq"><div class="idle-body">
-<div class="idle-txt">최근 지진 현황</div><button class="lbtn ora" onclick="loadEQ(this)">📡 불러오기</button></div></div>
+      <div id="deq"><div class="idle-body"><div class="idle-txt">최근 지진 현황</div>
+        <button class="lbtn ora" onclick="event.stopPropagation();loadEQ(this)">📡 불러오기</button></div></div>
       <div class="csrc">📡 기상청 EqkInfoService</div>
+      <div class="card-detail-hint">클릭 → 상세보기</div>
     </div>
 
-    <div class="card" style="--ca:var(--ora)">
-      <div class="ch"><div class="ct"><span class="ci">🏗️</span>산업재해 통계</div><span class="badge b-idle" id="bco">대기중</span></div>
-      <div id="dco"><div class="idle-body">
-<div class="idle-txt">산재 통계</div><button class="lbtn ora" onclick="loadConst(this)">📡 불러오기</button></div></div>
-      <div class="csrc">📡 고용노동부 산업재해현황</div>
+    <div class="sec" style="margin-top:4px">⛽ 에너지 · 교통</div>
+
+    <div class="card" onclick="openDetailCard('oil')" style="--ca:var(--yel)">
+      <div class="ch"><div class="ct"><span class="ci">⛽</span>전국 평균 유가</div><span class="badge b-idle" id="boil">대기중</span></div>
+      <div id="doil"><div class="idle-body"><div class="idle-txt">OPINET 유가 정보</div>
+        <button class="lbtn yel" onclick="event.stopPropagation();loadOil(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 한국석유공사 OPINET</div>
+      <div class="card-detail-hint">클릭 → 주유소 상세</div>
+    </div>
+
+    <div class="card" onclick="openDetailCard('parking')" style="--ca:var(--green)">
+      <div class="ch"><div class="ct"><span class="ci">🅿️</span>공영주차장</div><span class="badge b-idle" id="bpk">대기중</span></div>
+      <div id="dpk"><div class="idle-body"><div class="idle-txt">반경 1km</div>
+        <button class="lbtn green" onclick="event.stopPropagation();loadParking(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 카카오 장소검색</div>
+    </div>
+
+    <div class="card" onclick="openDetailCard('bus')" style="--ca:#fb923c">
+      <div class="ch"><div class="ct"><span class="ci">🚌</span>버스 정류장</div><span class="badge b-idle" id="bbus">대기중</span></div>
+      <div id="dbus"><div class="idle-body"><div class="idle-txt">반경 500m 버스정류장</div>
+        <button class="lbtn ora" onclick="event.stopPropagation();loadBus(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 카카오 장소검색</div>
+    </div>
+
+    <div class="card" onclick="openDetailCard('subway')" style="--ca:#818cf8">
+      <div class="ch"><div class="ct"><span class="ci">🚇</span>지하철역 & 노선</div><span class="badge b-idle" id="bsub">대기중</span></div>
+      <div id="dsub"><div class="idle-body"><div class="idle-txt">반경 1km + 지하철 노선도</div>
+        <button class="lbtn vio" onclick="event.stopPropagation();loadSubway(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 카카오 지하철 정보</div>
+      <div class="card-detail-hint">클릭 → 노선·시간표 상세</div>
+    </div>
+
+    <div class="sec" style="margin-top:4px">🌱 생활정보</div>
+
+    <div class="card" onclick="openDetailCard('life')" style="--ca:#2dd4bf">
+      <div class="ch"><div class="ct"><span class="ci">☀️</span>생활기상지수</div><span class="badge b-idle" id="blife">대기중</span></div>
+      <div id="dlife"><div class="idle-body"><div class="idle-txt">자외선·불쾌지수·체감온도</div>
+        <button class="lbtn teal" onclick="event.stopPropagation();loadLifeIdx(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 기상청 생활기상지수</div>
+    </div>
+
+    <div class="card" onclick="openDetailCard('food')" style="--ca:#f472b6">
+      <div class="ch"><div class="ct"><span class="ci">🍽️</span>식품안전 위반업소</div><span class="badge b-idle" id="bfood">대기중</span></div>
+      <div id="dfood"><div class="idle-body"><div class="idle-txt">식품위반업소 현황</div>
+        <button class="lbtn pink" onclick="event.stopPropagation();loadFood(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 식품의약품안전처</div>
+    </div>
+
+    <div class="card" onclick="openDetailCard('pub')" style="--ca:#a78bfa">
+      <div class="ch"><div class="ct"><span class="ci">🏛️</span>주민센터·도서관</div><span class="badge b-idle" id="bpub">대기중</span></div>
+      <div id="dpub"><div class="idle-body"><div class="idle-txt">반경 2km 공공시설</div>
+        <button class="lbtn vio" onclick="event.stopPropagation();loadPublic(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 카카오 장소검색</div>
     </div>
   </div>
 
@@ -404,65 +566,260 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="mpill">🗺️ 카카오맵</div>
       <div class="mpill" id="coordPill">--°N --°E</div>
     </div>
+    <!-- 우측 컨트롤 버튼 -->
+    <div class="map-controls">
+      <button class="mc-btn" id="btnRoadView" onclick="toggleRoadView()" title="로드뷰">👁️</button>
+      <button class="mc-btn" id="btnTraffic" onclick="toggleTraffic()" title="교통정보">🚗</button>
+      <button class="mc-btn" id="btnSubwayLine" onclick="toggleSubwayLine()" title="지하철 노선">🚇</button>
+      <button class="mc-btn" id="btnBicycle" onclick="toggleBicycle()" title="자전거도로">🚲</button>
+      <button class="mc-btn" onclick="clearOverlays()" title="마커 초기화">🗑️</button>
+      <button class="mc-btn" onclick="map.setLevel(map.getLevel()-1)" title="확대">➕</button>
+      <button class="mc-btn" onclick="map.setLevel(map.getLevel()+1)" title="축소">➖</button>
+    </div>
+    <!-- 지도 타입 버튼 -->
+    <div class="map-type-bar">
+      <button class="mt-btn active" id="mtNormal" onclick="setMapType('normal')">일반</button>
+      <button class="mt-btn" id="mtSky" onclick="setMapType('skyview')">스카이뷰</button>
+      <button class="mt-btn" id="mtHybrid" onclick="setMapType('hybrid')">하이브리드</button>
+    </div>
+    <!-- 지하철 노선 패널 -->
+    <div class="subway-panel" id="subwayPanel">
+      <h4>🚇 지하철 노선도</h4>
+      <div id="subwayPanelBody" style="font-size:10px;color:var(--dim)">로딩 중...</div>
+    </div>
     <div class="map-leg">
       <div class="leg">🏥 병원</div><div class="leg">🚑 응급</div>
       <div class="leg">💊 약국</div><div class="leg">🏫 학교</div>
       <div class="leg">🅿️ 주차</div><div class="leg">⛽ 주유</div>
+      <div class="leg">💛 AED</div><div class="leg">🚇 지하철</div>
+      <div class="leg">🚌 버스</div><div class="leg">🚒 소방</div>
+    </div>
+  </div>
+
+  <!-- 우측 패널 -->
+  <div class="panel pr" id="panelGenRight">
+    <div class="sec">🏥 의료 · 응급</div>
+
+    <div class="card" onclick="openDetailCard('hosp')" style="--ca:var(--pink)">
+      <div class="ch"><div class="ct"><span class="ci">🏥</span>주변 의료기관</div><span class="badge b-idle" id="bho">대기중</span></div>
+      <div id="dho"><div class="idle-body"><div class="idle-txt">반경 2km</div>
+        <button class="lbtn pink" onclick="event.stopPropagation();loadHosp(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 카카오 장소검색</div>
+    </div>
+
+    <div class="card" onclick="openDetailCard('er')" style="--ca:var(--red)">
+      <div class="ch"><div class="ct"><span class="ci">🚑</span>응급의료기관</div><span class="badge b-idle" id="ber">대기중</span></div>
+      <div id="der"><div class="idle-body"><div class="idle-txt">24시간 응급실</div>
+        <button class="lbtn red" onclick="event.stopPropagation();loadER(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 카카오 장소검색</div>
+    </div>
+
+    <div class="card" onclick="openDetailCard('pharm')" style="--ca:var(--teal)">
+      <div class="ch"><div class="ct"><span class="ci">💊</span>주변 약국</div><span class="badge b-idle" id="bph">대기중</span></div>
+      <div id="dph"><div class="idle-body"><div class="idle-txt">반경 1km</div>
+        <button class="lbtn teal" onclick="event.stopPropagation();loadPharm(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 카카오 장소검색</div>
+    </div>
+
+    <div class="card" onclick="openDetailCard('aed')" style="--ca:#34d399">
+      <div class="ch"><div class="ct"><span class="ci">💛</span>AED 위치</div><span class="badge b-idle" id="baed">대기중</span></div>
+      <div id="daed"><div class="idle-body"><div class="idle-txt">주변 자동심장충격기</div>
+        <button class="lbtn green" onclick="event.stopPropagation();loadAED(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 응급의료포털</div>
+    </div>
+
+    <div class="card" onclick="openDetailCard('fire')" style="--ca:#fb923c">
+      <div class="ch"><div class="ct"><span class="ci">🚒</span>소방서·119</div><span class="badge b-idle" id="bfire">대기중</span></div>
+      <div id="dfire"><div class="idle-body"><div class="idle-txt">반경 3km</div>
+        <button class="lbtn ora" onclick="event.stopPropagation();loadFire(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 카카오 장소검색</div>
+    </div>
+
+    <div class="sec" style="margin-top:4px">🏫 교육 · 복지</div>
+
+    <div class="card" onclick="openDetailCard('school')" style="--ca:var(--vio)">
+      <div class="ch"><div class="ct"><span class="ci">🏫</span>주변 학교</div><span class="badge b-idle" id="bsc">대기중</span></div>
+      <div id="dsc"><div class="idle-body"><div class="idle-txt">반경 2km</div>
+        <button class="lbtn vio" onclick="event.stopPropagation();loadSchool(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 카카오 장소검색</div>
+    </div>
+
+    <div class="sec" style="margin-top:4px">🆕 추가 공공정보</div>
+
+    <div class="card" onclick="openDetailCard('ev')" style="--ca:var(--green)">
+      <div class="ch"><div class="ct"><span class="ci">🔋</span>전기차 충전소</div><span class="badge b-idle" id="bev">대기중</span></div>
+      <div id="dev"><div class="idle-body"><div class="idle-txt">반경 2km EV 충전소</div>
+        <button class="lbtn green" onclick="event.stopPropagation();loadEV(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 카카오 장소검색</div>
+    </div>
+
+    <div class="card" onclick="openDetailCard('cafe')" style="--ca:#c084fc">
+      <div class="ch"><div class="ct"><span class="ci">☕</span>카페·편의점</div><span class="badge b-idle" id="bcafe">대기중</span></div>
+      <div id="dcafe"><div class="idle-body"><div class="idle-txt">반경 500m</div>
+        <button class="lbtn vio" onclick="event.stopPropagation();loadCafe(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 카카오 장소검색</div>
+    </div>
+
+    <div class="card" onclick="openDetailCard('bank')" style="--ca:#60a5fa">
+      <div class="ch"><div class="ct"><span class="ci">🏦</span>은행·ATM</div><span class="badge b-idle" id="bbank">대기중</span></div>
+      <div id="dbank"><div class="idle-body"><div class="idle-txt">반경 1km 금융기관</div>
+        <button class="lbtn" style="color:#60a5fa;background:rgba(96,165,250,.08);border-color:rgba(96,165,250,.28)" onclick="event.stopPropagation();loadBank(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 카카오 장소검색</div>
+    </div>
+
+    <div class="card" onclick="openDetailCard('hotel')" style="--ca:#f9a8d4">
+      <div class="ch"><div class="ct"><span class="ci">🏨</span>숙박시설</div><span class="badge b-idle" id="bhotel">대기중</span></div>
+      <div id="dhotel"><div class="idle-body"><div class="idle-txt">반경 2km 숙박시설</div>
+        <button class="lbtn pink" onclick="event.stopPropagation();loadHotel(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 카카오 장소검색</div>
+    </div>
+  </div>
+
+</div><!-- /content-general -->
+
+<!-- ════════════════════════════════
+     산업안전지도 탭
+════════════════════════════════ -->
+<div class="tab-content" id="content-kosha">
+
+  <!-- 좌측 -->
+  <div class="panel pl">
+    <div class="sec k">🌤 공통 · 기상</div>
+
+    <div class="card no-click" style="--ca:var(--teal)">
+      <div class="ch"><div class="ct"><span class="ci">🌤</span>현재 날씨</div><span class="badge" id="bw2">-</span></div>
+      <div id="dw2"><div class="sk h3"></div></div>
+      <div class="csrc k">📡 기상청 초단기실황 (실시간)</div>
+    </div>
+
+    <div class="card no-click" style="--ca:var(--green)">
+      <div class="ch"><div class="ct"><span class="ci">🌫</span>대기질</div><span class="badge" id="ba2">-</span></div>
+      <div id="da2"><div class="sk h2"></div></div>
+      <div class="csrc k">📡 환경부 에어코리아 (실시간)</div>
+    </div>
+
+    <div class="sec k" style="margin-top:4px">📊 재해사례 · 통계</div>
+
+    <div class="card kosha-card" onclick="loadKoshaCase(null)" style="--ca:var(--kosha)">
+      <div class="ch"><div class="ct"><span class="ci">📋</span>국내 재해사례</div><span class="badge b-idle" id="bkcase">대기중</span></div>
+      <div id="dkcase"><div class="idle-body"><div class="idle-txt">재해 유형·원인별 사례</div>
+        <button class="lbtn kosha" onclick="event.stopPropagation();loadKoshaCase(this)">📡 불러오기</button></div></div>
+      <div class="csrc k">📡 안전보건공단 재해사례</div>
+      <div class="card-detail-hint k">클릭 → 상세보기</div>
+    </div>
+
+    <div class="card kosha-card" onclick="openStatDetail()" style="--ca:var(--kosha)">
+      <div class="ch"><div class="ct"><span class="ci">📈</span>산업재해 통계</div><span class="badge b-idle" id="bkstat">대기중</span></div>
+      <div id="dkstat"><div class="idle-body"><div class="idle-txt">연도별 산업재해 데이터</div>
+        <button class="lbtn kosha" onclick="event.stopPropagation();loadKoshaStat(this)">📡 불러오기</button></div></div>
+      <div class="csrc k">📡 안전보건공단</div>
+    </div>
+
+    <div class="card kosha-card" onclick="loadKoshaConst(null)" style="--ca:#f97316">
+      <div class="ch"><div class="ct"><span class="ci">🏗️</span>건설업 중대재해</div><span class="badge b-idle" id="bkconst">대기중</span></div>
+      <div id="dkconst"><div class="idle-body"><div class="idle-txt">건설업 중대재해 분석</div>
+        <button class="lbtn ora" onclick="event.stopPropagation();loadKoshaConst(this)">📡 불러오기</button></div></div>
+      <div class="csrc k">📡 안전보건공단 건설안전</div>
+    </div>
+
+    <div class="card kosha-card" onclick="openKoshaModal('msds')" style="--ca:#a78bfa">
+      <div class="ch"><div class="ct"><span class="ci">🧪</span>MSDS 화학물질</div><span class="badge b-idle" id="bkmsds">대기중</span></div>
+      <div id="dkmsds"><div class="idle-body"><div class="idle-txt">물질안전보건자료 검색</div>
+        <button class="lbtn vio" onclick="event.stopPropagation();openKoshaModal('msds')">🔍 검색하기</button></div></div>
+      <div class="csrc k">📡 안전보건공단 MSDS</div>
+    </div>
+
+    <div class="card kosha-card" onclick="openKoshaModal('law')" style="--ca:#60a5fa">
+      <div class="ch"><div class="ct"><span class="ci">⚖️</span>안전보건 법령</div><span class="badge b-idle" id="bklaw">대기중</span></div>
+      <div id="dklaw"><div class="idle-body"><div class="idle-txt">산업안전보건 법령 검색</div>
+        <button class="lbtn" style="color:#60a5fa;background:rgba(96,165,250,.08);border-color:rgba(96,165,250,.28)" onclick="event.stopPropagation();openKoshaModal('law')">🔍 검색하기</button></div></div>
+      <div class="csrc k">📡 안전보건공단 법령</div>
+    </div>
+  </div>
+
+  <!-- 지도 2 -->
+  <div class="mapwrap">
+    <div id="map2"></div>
+    <div class="map-top">
+      <div class="mpill" style="border-color:rgba(245,158,11,.35)">🦺 산업안전지도</div>
+      <div class="mpill" id="coordPill2">--°N --°E</div>
+    </div>
+    <div class="map-controls">
+      <button class="mc-btn" id="btnTraffic2" onclick="toggleTraffic2()" title="교통정보">🚗</button>
+      <button class="mc-btn" onclick="clearOverlays2()" title="마커 초기화">🗑️</button>
+      <button class="mc-btn" onclick="map2&&map2.setLevel(map2.getLevel()-1)">➕</button>
+      <button class="mc-btn" onclick="map2&&map2.setLevel(map2.getLevel()+1)">➖</button>
+    </div>
+    <div class="map-type-bar">
+      <button class="mt-btn active" id="mt2Normal" onclick="setMapType2('normal')">일반</button>
+      <button class="mt-btn" id="mt2Sky" onclick="setMapType2('skyview')">스카이뷰</button>
+      <button class="mt-btn" id="mt2Hybrid" onclick="setMapType2('hybrid')">하이브리드</button>
+    </div>
+    <div class="map-leg">
+      <div class="leg" style="border-color:rgba(245,158,11,.3);color:var(--kosha)">⚠️ 재해지역</div>
+      <div class="leg" style="border-color:rgba(245,158,11,.3);color:var(--kosha)">🏭 사업장</div>
+      <div class="leg" style="border-color:rgba(245,158,11,.3);color:var(--kosha)">🔬 화학물질</div>
     </div>
   </div>
 
   <!-- 우측 -->
   <div class="panel pr">
-    <div class="sec">⛽ 에너지 · 교통</div>
+    <div class="sec k">🌤 공통 기상 (추가)</div>
 
-    <div class="card" style="--ca:var(--yel)">
-      <div class="ch"><div class="ct"><span class="ci">⛽</span>전국 평균 유가</div><span class="badge b-idle" id="boil">대기중</span></div>
-      <div id="doil"><div class="idle-body">
-<div class="idle-txt">유가 정보</div><button class="lbtn yel" onclick="loadOil(this)">📡 불러오기</button></div></div>
-      <div class="csrc">📡 한국석유공사 OPINET</div>
+    <div class="card" onclick="openDetailCard('disaster')" style="--ca:var(--red)">
+      <div class="ch"><div class="ct"><span class="ci">🚨</span>재난·기상특보</div><span class="badge b-idle" id="bd2">대기중</span></div>
+      <div id="dd2"><div class="idle-body"><div class="idle-txt">기상특보·재난</div>
+        <button class="lbtn red" onclick="event.stopPropagation();loadDisaster2(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 기상청</div>
     </div>
 
-    <div class="card" style="--ca:var(--green)">
-      <div class="ch"><div class="ct"><span class="ci">🅿️</span>공영주차장</div><span class="badge b-idle" id="bpk">대기중</span></div>
-      <div id="dpk"><div class="idle-body">
-<div class="idle-txt">반경 1km</div><button class="lbtn green" onclick="loadParking(this)">📡 불러오기</button></div></div>
-      <div class="csrc">📡 카카오 장소검색</div>
+    <div class="card" onclick="openDetailCard('eq2')" style="--ca:var(--ora)">
+      <div class="ch"><div class="ct"><span class="ci">🌍</span>지진 정보</div><span class="badge b-idle" id="beq2">대기중</span></div>
+      <div id="deq2"><div class="idle-body"><div class="idle-txt">최근 지진 현황</div>
+        <button class="lbtn ora" onclick="event.stopPropagation();loadEQ2(this)">📡 불러오기</button></div></div>
+      <div class="csrc">📡 기상청</div>
     </div>
 
-    <div class="sec" style="margin-top:4px">🏥 의료 · 복지</div>
+    <div class="sec k" style="margin-top:4px">🦺 산업안전 전용</div>
 
-    <div class="card" style="--ca:var(--pink)">
-      <div class="ch"><div class="ct"><span class="ci">🏥</span>주변 의료기관</div><span class="badge b-idle" id="bho">대기중</span></div>
-      <div id="dho"><div class="idle-body">
-<div class="idle-txt">반경 2km</div><button class="lbtn pink" onclick="loadHosp(this)">📡 불러오기</button></div></div>
-      <div class="csrc">📡 카카오 장소검색</div>
+    <div class="card kosha-card" onclick="openKoshaInfoModal('⚠️ 중대재해 속보','maj')" style="--ca:#facc15">
+      <div class="ch"><div class="ct"><span class="ci">⚠️</span>중대재해 속보</div><span class="badge b-idle" id="bmaj">대기중</span></div>
+      <div id="dmaj"><div class="idle-body"><div class="idle-txt">최근 중대재해 발생</div>
+        <button class="lbtn yel" onclick="event.stopPropagation();loadMajor(this)">📡 불러오기</button></div></div>
+      <div class="csrc k">📡 고용노동부 중대재해발생현황</div>
     </div>
 
-    <div class="card" style="--ca:var(--red)">
-      <div class="ch"><div class="ct"><span class="ci">🚑</span>응급의료기관</div><span class="badge b-idle" id="ber">대기중</span></div>
-      <div id="der"><div class="idle-body">
-<div class="idle-txt">응급실 검색</div><button class="lbtn red" onclick="loadER(this)">📡 불러오기</button></div></div>
-      <div class="csrc">📡 카카오 장소검색</div>
+    <div class="card kosha-card" onclick="openKoshaInfoModal('🌡️ 온열질환','heat')" style="--ca:#f87171">
+      <div class="ch"><div class="ct"><span class="ci">🌡️</span>온열질환 현황</div><span class="badge b-idle" id="bheat">대기중</span></div>
+      <div id="dheat"><div class="idle-body"><div class="idle-txt">온열질환 응급실 현황</div>
+        <button class="lbtn red" onclick="event.stopPropagation();loadHeat(this)">📡 불러오기</button></div></div>
+      <div class="csrc k">📡 질병관리청</div>
     </div>
 
-    <div class="card" style="--ca:var(--teal)">
-      <div class="ch"><div class="ct"><span class="ci">💊</span>주변 약국</div><span class="badge b-idle" id="bph">대기중</span></div>
-      <div id="dph"><div class="idle-body">
-<div class="idle-txt">반경 1km</div><button class="lbtn teal" onclick="loadPharm(this)">📡 불러오기</button></div></div>
-      <div class="csrc">📡 카카오 장소검색</div>
+    <div class="card kosha-card" onclick="loadKoshaEdu(null)" style="--ca:#34d399">
+      <div class="ch"><div class="ct"><span class="ci">📚</span>안전보건 교육자료</div><span class="badge b-idle" id="bkedu">대기중</span></div>
+      <div id="dkedu"><div class="idle-body"><div class="idle-txt">교육자료 목록 조회</div>
+        <button class="lbtn green" onclick="event.stopPropagation();loadKoshaEdu(this)">📡 불러오기</button></div></div>
+      <div class="csrc k">📡 안전보건공단 교육자료</div>
     </div>
 
-    <div class="sec" style="margin-top:4px">🏫 교육 · 시설</div>
+    <div class="card kosha-card" onclick="loadKoshaMap(null)" style="--ca:var(--teal)">
+      <div class="ch"><div class="ct"><span class="ci">🗺️</span>산업재해 지도</div><span class="badge b-idle" id="bkmap">대기중</span></div>
+      <div id="dkmap"><div class="idle-body"><div class="idle-txt">지역별 산업재해 지도</div>
+        <button class="lbtn teal" onclick="event.stopPropagation();loadKoshaMap(this)">📡 불러오기</button></div></div>
+      <div class="csrc k">📡 안전보건공단 지도 API</div>
+    </div>
 
-    <div class="card" style="--ca:var(--vio)">
-      <div class="ch"><div class="ct"><span class="ci">🏫</span>주변 학교</div><span class="badge b-idle" id="bsc">대기중</span></div>
-      <div id="dsc"><div class="idle-body">
-<div class="idle-txt">반경 2km</div><button class="lbtn vio" onclick="loadSchool(this)">📡 불러오기</button></div></div>
-      <div class="csrc">📡 카카오 장소검색</div>
+    <div class="card kosha-card" onclick="loadKoshaFile(null)" style="--ca:var(--pink)">
+      <div class="ch"><div class="ct"><span class="ci">📎</span>재해사례 첨부파일</div><span class="badge b-idle" id="bkfile">대기중</span></div>
+      <div id="dkfile"><div class="idle-body"><div class="idle-txt">재해사례 보고서 다운로드</div>
+        <button class="lbtn pink" onclick="event.stopPropagation();loadKoshaFile(this)">📡 불러오기</button></div></div>
+      <div class="csrc k">📡 안전보건공단 첨부파일</div>
     </div>
   </div>
 
-</div>
+</div><!-- /content-kosha -->
+</div><!-- /main-wrap -->
 
 <script>
 /* ── KEYS ── */
@@ -471,215 +828,551 @@ const KE   = encodeURIComponent(K);
 const KOIL = 'F260309357';
 
 /* ── STATE ── */
-let map, PS;
-let uLat = 37.5665, uLng = 126.9780;
-let aCnt = 0;
-const done = {};
-let overlays = [];
+let map, map2, PS, PS2;
+let uLat=37.5665, uLng=126.9780;
+let aCnt=0;
+const done={};
+let overlays=[], overlays2=[];
+let trafficLayer=null, subwayLayer=null, bicycleLayer=null;
+let trafficLayer2=null;
+let roadViewClient=null, roadViewPanorama=null;
 
 /* ── BOOT ── */
-startClock();
-checkEnv();
+startClock(); checkEnv();
+const forceClose=setTimeout(()=>closeLoader(),8000);
+prog(20,'카카오맵 SDK 로드 중...');
 
-// 안전장치: 8초 내 카카오 못 뜨면 강제 닫음
-const forceClose = setTimeout(() => closeLoader(), 8000);
-prog(20, '카카오맵 SDK 로드 중...');
-
-function waitKakao() {
-  if (typeof kakao !== 'undefined' && kakao.maps) {
-    prog(65, '지도 그리는 중...');
-    kakao.maps.load(() => {
+function waitKakao(){
+  if(typeof kakao!=='undefined'&&kakao.maps){
+    prog(65,'지도 그리는 중...');
+    kakao.maps.load(()=>{
       clearTimeout(forceClose);
-      initMap();
-      prog(100, '완료!');
-      // ✅ 카카오맵 완료 즉시 로더 닫음 — API 절대 안 기다림
+      initMap(); initMap2();
+      prog(100,'완료!');
       closeLoader();
-      getLocation(); // 백그라운드에서 위치 → 날씨+대기질
+      getLocation();
     });
-  } else {
-    setTimeout(waitKakao, 80);
-  }
+  } else setTimeout(waitKakao,80);
 }
 waitKakao();
 
 /* ── LOADER ── */
-function prog(pct, msg) {
-  document.getElementById('ldbar').style.width = pct + '%';
-  document.getElementById('ldmsg').textContent = msg;
+function prog(p,m){
+  document.getElementById('ldbar').style.width=p+'%';
+  document.getElementById('ldmsg').textContent=m;
 }
-function closeLoader() {
-  const el = document.getElementById('loader');
-  if (!el || el.style.display === 'none') return;
-  el.style.opacity = '0';
-  setTimeout(() => { el.style.display = 'none'; }, 500);
+function closeLoader(){
+  const el=document.getElementById('loader');
+  if(!el||el.style.display==='none')return;
+  el.style.opacity='0';
+  setTimeout(()=>{el.style.display='none';},500);
 }
-
-/* ── 환경 감지 ── */
-function checkEnv() {
-  if (location.protocol === 'file:') {
-    document.getElementById('envWarn').style.display = 'block';
-  }
+function checkEnv(){
+  if(location.protocol==='file:') document.getElementById('envWarn').style.display='block';
 }
 
 /* ── CLOCK ── */
-function startClock() {
-  const t = () => {
-    const n = new Date();
-    document.getElementById('clock').textContent = n.toLocaleTimeString('ko-KR',{hour12:false});
-    document.getElementById('upd').textContent   = n.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+function startClock(){
+  const t=()=>{
+    const n=new Date();
+    document.getElementById('clock').textContent=n.toLocaleTimeString('ko-KR',{hour12:false});
+    document.getElementById('upd').textContent=n.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
   };
-  t(); setInterval(t, 1000);
+  t(); setInterval(t,1000);
 }
 
-/* ── MAP ── */
-function initMap() {
-  map = new kakao.maps.Map(document.getElementById('map'), {
-    center: new kakao.maps.LatLng(uLat, uLng), level:5
+/* ── TAB ── */
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('content-'+tab).classList.add('active');
+  if(tab==='kosha'){
+    mirrorWeatherAir();
+    // 지도 resize를 여러 타이밍에 강제 실행 (visibility 전환 후 레이아웃 확정까지 대기)
+    [50,150,300,600,1000].forEach(ms=>setTimeout(()=>{
+      if(map2){
+        kakao.maps.event.trigger(map2,'resize');
+        map2.setCenter(new kakao.maps.LatLng(uLat,uLng));
+      }
+    },ms));
+  } else {
+    setTimeout(()=>{if(map)kakao.maps.event.trigger(map,'resize');},50);
+  }
+}
+function mirrorWeatherAir(){
+  ['dw','da'].forEach(id=>{
+    const src=document.getElementById(id);
+    const dst=document.getElementById(id+'2');
+    if(src&&dst)dst.innerHTML=src.innerHTML;
   });
-  PS = new kakao.maps.services.Places();
-  map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.BOTTOMRIGHT);
-  kakao.maps.event.addListener(map, 'center_changed', () => {
-    const c = map.getCenter();
-    document.getElementById('coordPill').textContent =
+  [['bw','bw2'],['ba','ba2']].forEach(([s,d])=>{
+    const se=document.getElementById(s), de=document.getElementById(d);
+    if(se&&de){de.className=se.className;de.textContent=se.textContent;}
+  });
+}
+
+/* ── MAP 1 (일반지도) ── */
+function initMap(){
+  map=new kakao.maps.Map(document.getElementById('map'),{
+    center:new kakao.maps.LatLng(uLat,uLng),level:5
+  });
+  PS=new kakao.maps.services.Places();
+  map.addControl(new kakao.maps.ZoomControl(),kakao.maps.ControlPosition.BOTTOMRIGHT);
+  kakao.maps.event.addListener(map,'center_changed',()=>{
+    const c=map.getCenter();
+    document.getElementById('coordPill').textContent=
       `${c.getLat().toFixed(4)}°N  ${c.getLng().toFixed(4)}°E`;
   });
-  putDot(uLat, uLng);
+  // 지도 클릭 시 로드뷰
+  kakao.maps.event.addListener(map,'click',e=>{
+    if(document.getElementById('btnRoadView').classList.contains('active')){
+      showRoadView(e.latLng.getLat(),e.latLng.getLng());
+    }
+  });
+  putDot(uLat,uLng,'map');
 }
 
-function putDot(lat, lng) {
+/* ── MAP 2 (산업안전) ── */
+function initMap2(){
+  map2=new kakao.maps.Map(document.getElementById('map2'),{
+    center:new kakao.maps.LatLng(uLat,uLng),level:7
+  });
+  PS2=new kakao.maps.services.Places();
+  map2.addControl(new kakao.maps.ZoomControl(),kakao.maps.ControlPosition.BOTTOMRIGHT);
+  kakao.maps.event.addListener(map2,'center_changed',()=>{
+    const c=map2.getCenter();
+    document.getElementById('coordPill2').textContent=
+      `${c.getLat().toFixed(4)}°N  ${c.getLng().toFixed(4)}°E`;
+  });
+  putDot(uLat,uLng,'map2');
+}
+
+/* ── 지도 타입 ── */
+function setMapType(t){
+  if(!map)return;
+  ['Normal','Sky','Hybrid'].forEach(n=>document.getElementById('mt'+n)?.classList.remove('active'));
+  if(t==='normal'){map.setMapTypeId(kakao.maps.MapTypeId.ROADMAP);document.getElementById('mtNormal').classList.add('active');}
+  else if(t==='skyview'){map.setMapTypeId(kakao.maps.MapTypeId.SKYVIEW);document.getElementById('mtSky').classList.add('active');}
+  else if(t==='hybrid'){map.setMapTypeId(kakao.maps.MapTypeId.HYBRID);document.getElementById('mtHybrid').classList.add('active');}
+}
+function setMapType2(t){
+  if(!map2)return;
+  ['mt2Normal','mt2Sky','mt2Hybrid'].forEach(id=>document.getElementById(id)?.classList.remove('active'));
+  if(t==='normal'){map2.setMapTypeId(kakao.maps.MapTypeId.ROADMAP);document.getElementById('mt2Normal').classList.add('active');}
+  else if(t==='skyview'){map2.setMapTypeId(kakao.maps.MapTypeId.SKYVIEW);document.getElementById('mt2Sky').classList.add('active');}
+  else if(t==='hybrid'){map2.setMapTypeId(kakao.maps.MapTypeId.HYBRID);document.getElementById('mt2Hybrid').classList.add('active');}
+}
+
+/* ── 교통정보 레이어 ── */
+function toggleTraffic(){
+  const btn=document.getElementById('btnTraffic');
+  if(!map)return;
+  if(!trafficLayer) trafficLayer=new kakao.maps.RoadView(); // 교통 레이어
+  if(btn.classList.contains('active')){
+    map.removeOverlayMapTypeId(kakao.maps.MapTypeId.TRAFFIC);
+    btn.classList.remove('active');
+  } else {
+    map.addOverlayMapTypeId(kakao.maps.MapTypeId.TRAFFIC);
+    btn.classList.add('active');
+  }
+}
+function toggleTraffic2(){
+  const btn=document.getElementById('btnTraffic2');
+  if(!map2)return;
+  if(btn.classList.contains('active')){
+    map2.removeOverlayMapTypeId(kakao.maps.MapTypeId.TRAFFIC);
+    btn.classList.remove('active');
+  } else {
+    map2.addOverlayMapTypeId(kakao.maps.MapTypeId.TRAFFIC);
+    btn.classList.add('active');
+  }
+}
+
+/* ── 지하철 노선 레이어 ── */
+function toggleSubwayLine(){
+  const btn=document.getElementById('btnSubwayLine');
+  if(!map)return;
+  if(btn.classList.contains('active')){
+    map.removeOverlayMapTypeId(kakao.maps.MapTypeId.USE_DISTRICT);
+    map.removeOverlayMapTypeId(kakao.maps.MapTypeId.ROADVIEW_ROAD);
+    btn.classList.remove('active');
+    document.getElementById('subwayPanel').style.display='none';
+  } else {
+    map.addOverlayMapTypeId(kakao.maps.MapTypeId.USE_DISTRICT);
+    btn.classList.add('active');
+    loadSubwayPanel();
+  }
+}
+
+/* ── 자전거 도로 ── */
+function toggleBicycle(){
+  const btn=document.getElementById('btnBicycle');
+  if(!map)return;
+  if(btn.classList.contains('active')){
+    map.removeOverlayMapTypeId(kakao.maps.MapTypeId.BICYCLE);
+    btn.classList.remove('active');
+  } else {
+    map.addOverlayMapTypeId(kakao.maps.MapTypeId.BICYCLE);
+    btn.classList.add('active');
+  }
+}
+
+/* ── 로드뷰 ── */
+function toggleRoadView(){
+  const btn=document.getElementById('btnRoadView');
+  btn.classList.toggle('active');
+  if(btn.classList.contains('active')){
+    showInfo('👁️ 로드뷰 활성화 — 지도를 클릭하면 해당 위치의 로드뷰를 표시합니다');
+  } else {
+    // 로드뷰 컨테이너 숨김
+    const rv=document.getElementById('rvOverlay');
+    if(rv)rv.remove();
+  }
+}
+function showRoadView(lat,lng){
+  let rv=document.getElementById('rvOverlay');
+  if(!rv){
+    rv=document.createElement('div');
+    rv.id='rvOverlay';
+    rv.style.cssText='position:absolute;top:48px;left:8px;width:260px;height:190px;'+
+      'background:#000;border:1px solid rgba(0,170,255,.4);border-radius:10px;z-index:20;overflow:hidden';
+    const closeBtn=document.createElement('button');
+    closeBtn.textContent='✕';
+    closeBtn.style.cssText='position:absolute;top:4px;right:6px;z-index:30;background:rgba(0,0,0,.6);'+
+      'border:none;color:#fff;cursor:pointer;font-size:13px;border-radius:4px;padding:1px 5px';
+    closeBtn.onclick=()=>{rv.remove();document.getElementById('btnRoadView').classList.remove('active');};
+    const rvDiv=document.createElement('div');
+    rvDiv.id='rvDiv';rvDiv.style.cssText='width:100%;height:100%';
+    rv.appendChild(rvDiv);rv.appendChild(closeBtn);
+    document.querySelector('#content-general .mapwrap').appendChild(rv);
+    roadViewClient=new kakao.maps.RoadviewClient();
+    roadViewPanorama=new kakao.maps.Roadview(rvDiv);
+  }
+  roadViewClient.getNearestPanoId(new kakao.maps.LatLng(lat,lng),50,panoId=>{
+    if(panoId) roadViewPanorama.setPanoId(panoId,new kakao.maps.LatLng(lat,lng));
+    else showInfo('⚠️ 이 위치는 로드뷰를 지원하지 않습니다');
+  });
+}
+
+/* ── 지하철 패널 ── */
+function loadSubwayPanel(){
+  const panel=document.getElementById('subwayPanel');
+  panel.style.display='block';
+  const lines=[
+    {name:'1호선',color:'#0052A4'},{name:'2호선',color:'#00A84D'},
+    {name:'3호선',color:'#EF7C1C'},{name:'4호선',color:'#00A5DE'},
+    {name:'5호선',color:'#996CAC'},{name:'6호선',color:'#CD7C2F'},
+    {name:'7호선',color:'#747F00'},{name:'8호선',color:'#E6186C'},
+    {name:'9호선',color:'#BDB092'},{name:'수인분당선',color:'#F5A200'},
+    {name:'신분당선',color:'#D4003B'},{name:'경의중앙선',color:'#77C4A3'},
+    {name:'공항철도',color:'#0065B3'},
+  ];
+  document.getElementById('subwayPanelBody').innerHTML=
+    `<div style="display:flex;flex-wrap:wrap;gap:4px;max-height:100px;overflow-y:auto">`
+    +lines.map(l=>`<div style="padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700;
+      background:${l.color}22;border:1px solid ${l.color}66;color:${l.color};cursor:pointer"
+      onclick="searchSubwayNear('${l.name}')">${l.name}</div>`).join('')
+    +`</div><div style="margin-top:5px;font-size:9px;color:var(--dim)">노선명 클릭 → 주변역 검색</div>`;
+}
+function searchSubwayNear(line){
+  if(!PS||!map)return;
+  PS.keywordSearch(line+' 역',(res,st)=>{
+    if(st===kakao.maps.services.Status.OK){
+      res.slice(0,5).forEach(r=>putMarker(+r.y,+r.x,'🚇',r.place_name));
+      map.setCenter(new kakao.maps.LatLng(+res[0].y,+res[0].x));
+      showInfo(`🚇 ${line} 주요역 ${res.length}개 표시`);
+    }
+  },{location:new kakao.maps.LatLng(uLat,uLng),radius:5000});
+}
+
+/* ── 마커 ── */
+function putDot(lat,lng,mapId){
+  const m=mapId==='map'?map:map2;
+  if(!m)return;
+  const color=mapId==='map'?'#0af':'#f59e0b';
   new kakao.maps.CustomOverlay({
-    position: new kakao.maps.LatLng(lat, lng),
-    content: `<div style="width:13px;height:13px;background:#0af;border:2px solid #fff;border-radius:50%;box-shadow:0 0 12px rgba(0,170,255,.9),0 0 24px rgba(0,170,255,.4)"></div>`,
+    position:new kakao.maps.LatLng(lat,lng),
+    content:`<div style="width:12px;height:12px;background:${color};border:2px solid #fff;border-radius:50%;box-shadow:0 0 12px ${color},0 0 24px ${color}44"></div>`,
     zIndex:10
-  }).setMap(map);
+  }).setMap(m);
 }
-
-function putMarker(lat, lng, emoji, title) {
-  const ov = new kakao.maps.CustomOverlay({
-    position: new kakao.maps.LatLng(lat, lng),
-    content: `<div title="${title}" style="width:28px;height:28px;background:rgba(4,16,30,.93);border:1px solid rgba(0,170,255,.38);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;box-shadow:0 0 8px rgba(0,170,255,.2)">${emoji}</div>`
+function putMarker(lat,lng,emoji,title){
+  if(!map)return;
+  const ov=new kakao.maps.CustomOverlay({
+    position:new kakao.maps.LatLng(lat,lng),
+    content:`<div title="${title}" style="width:26px;height:26px;background:rgba(4,16,30,.93);border:1px solid rgba(0,170,255,.38);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;box-shadow:0 0 8px rgba(0,170,255,.2)" onclick="showInfo('${title.replace(/'/g,"&#39;")}')">${emoji}</div>`
   });
   ov.setMap(map); overlays.push(ov);
 }
+function putMarker2(lat,lng,emoji,title){
+  if(!map2)return;
+  const ov=new kakao.maps.CustomOverlay({
+    position:new kakao.maps.LatLng(lat,lng),
+    content:`<div title="${title}" style="width:28px;height:28px;background:rgba(4,16,30,.93);border:1px solid rgba(245,158,11,.5);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;box-shadow:0 0 8px rgba(245,158,11,.3)" onclick="showInfo('${title.replace(/'/g,"&#39;")}')">${emoji}</div>`
+  });
+  ov.setMap(map2); overlays2.push(ov);
+}
+function clearOverlays(){overlays.forEach(o=>o.setMap(null));overlays=[];}
+function clearOverlays2(){overlays2.forEach(o=>o.setMap(null));overlays2=[];}
+function moveTo(lat,lng){if(map){map.setCenter(new kakao.maps.LatLng(lat,lng));map.setLevel(3);}}
+function moveTo2(lat,lng){if(map2){map2.setCenter(new kakao.maps.LatLng(lat,lng));map2.setLevel(5);}}
 
-function moveTo(lat, lng) { map.setCenter(new kakao.maps.LatLng(lat,lng)); map.setLevel(3); }
+/* ── 간단 안내 토스트 ── */
+let toastTimer;
+function showInfo(msg){
+  let el=document.getElementById('toastMsg');
+  if(!el){
+    el=document.createElement('div');el.id='toastMsg';
+    el.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);'+
+      'background:rgba(2,10,20,.96);border:1px solid rgba(0,170,255,.4);border-radius:10px;'+
+      'padding:8px 16px;font-size:11px;color:var(--teal);z-index:5000;pointer-events:none;'+
+      'white-space:nowrap;backdrop-filter:blur(10px);transition:opacity .3s';
+    document.body.appendChild(el);
+  }
+  el.textContent=msg;el.style.opacity='1';
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{el.style.opacity='0';},3000);
+}
 
 /* ── LOCATION ── */
-function getLocation() {
-  document.getElementById('locName').textContent = '확인 중...';
-  if (!navigator.geolocation) { fallback(); return; }
+function getLocation(){
+  document.getElementById('locName').textContent='확인 중...';
+  if(!navigator.geolocation){fallback();return;}
   navigator.geolocation.getCurrentPosition(
-    p => {
-      uLat = p.coords.latitude; uLng = p.coords.longitude;
-      if (map) {
-        map.setCenter(new kakao.maps.LatLng(uLat, uLng));
-        putDot(uLat, uLng);
-        revGeo(uLat, uLng);
-      }
+    p=>{
+      uLat=p.coords.latitude;uLng=p.coords.longitude;
+      if(map){map.setCenter(new kakao.maps.LatLng(uLat,uLng));putDot(uLat,uLng,'map');revGeo();}
+      if(map2){map2.setCenter(new kakao.maps.LatLng(uLat,uLng));}
       autoLoad();
     },
-    () => fallback(),
-    {timeout:8000}
+    ()=>fallback(),{timeout:8000,enableHighAccuracy:true}
   );
 }
-function fallback() {
-  document.getElementById('locName').textContent = '서울특별시 중구 (기본)';
-  autoLoad();
-}
-function revGeo(lat, lng) {
-  new kakao.maps.services.Geocoder().coord2Address(lng, lat, (r,s) => {
-    if (s === kakao.maps.services.Status.OK) {
-      const a = r[0].address;
-      document.getElementById('locName').textContent =
+function fallback(){document.getElementById('locName').textContent='서울특별시 중구 (기본)';autoLoad();}
+function revGeo(){
+  new kakao.maps.services.Geocoder().coord2Address(uLng,uLat,(r,s)=>{
+    if(s===kakao.maps.services.Status.OK){
+      const a=r[0].address;
+      document.getElementById('locName').textContent=
         `${a.region_1depth_name} ${a.region_2depth_name} ${a.region_3depth_name}`;
     }
-    document.getElementById('locCoord').textContent = ` · ${lat.toFixed(4)}°N ${lng.toFixed(4)}°E`;
+    document.getElementById('locCoord').textContent=` · ${uLat.toFixed(4)}°N ${uLng.toFixed(4)}°E`;
   });
 }
-
-function autoLoad() {
-  loadWeather();
-  loadAir();
-}
+function autoLoad(){loadWeather();loadAir();}
 
 /* ── HELPERS ── */
-function track() { document.getElementById('apiCnt').textContent = ++aCnt; }
-function setBadge(id, cls, txt) {
-  const el = document.getElementById(id);
-  if (el) { el.className = 'badge ' + cls; el.textContent = txt; }
+function track(){document.getElementById('apiCnt').textContent=++aCnt;}
+function setBadge(id,cls,txt){const el=document.getElementById(id);if(el){el.className='badge '+cls;el.textContent=txt;}}
+function setHTML(id,html){const el=document.getElementById(id);if(el)el.innerHTML=html;}
+function disBtn(btn){if(btn){btn.disabled=true;btn.textContent='⏳ 로드 중...';}}
+function today(){return new Date().toISOString().slice(0,10).replace(/-/g,'');}
+function bHour(){
+  const n=new Date();
+  // 기상청 API는 정시에 업데이트 — 현재 시간 기준 이전 정시
+  const h=n.getHours();
+  const m=n.getMinutes();
+  // 초단기실황은 매 정시 30분 이후 조회 가능 (전 시간 데이터)
+  const baseH = m<10 ? (h===0?23:h-1) : h;
+  return String(baseH).padStart(2,'0')+'00';
 }
-function setHTML(id, html) {
-  const el = document.getElementById(id);
-  if (el) el.innerHTML = html;
-}
-function disBtn(btn) { if (btn) { btn.disabled=true; btn.textContent='⏳ 불러오는 중...'; } }
-function today() { return new Date().toISOString().slice(0,10).replace(/-/g,''); }
-function bHour() { const h=new Date().getHours(); return String(h===0?23:h-1).padStart(2,'0')+'00'; }
-function toGrid(lat,lng) {
+function toGrid(lat,lng){
   const RE=6371.00877,G=5,S1=30,S2=60,OL=126,OA=38,XO=43,YO=136,D=Math.PI/180;
   const re=RE/G,s1=S1*D,s2=S2*D,ol=OL*D,oa=OA*D;
   let sn=Math.log(Math.cos(s1)/Math.cos(s2))/Math.log(Math.tan(Math.PI*.25+s2*.5)/Math.tan(Math.PI*.25+s1*.5));
   let sf=Math.pow(Math.tan(Math.PI*.25+s1*.5),sn)*Math.cos(s1)/sn;
   let ro=re*sf/Math.pow(Math.tan(Math.PI*.25+oa*.5),sn);
   let ra=re*sf/Math.pow(Math.tan(Math.PI*.25+lat*D*.5),sn);
-  let th=lng*D-ol; if(th>Math.PI)th-=2*Math.PI; if(th<-Math.PI)th+=2*Math.PI; th*=sn;
-  return {x:Math.floor(ra*Math.sin(th)+XO+.5), y:Math.floor(ro-ra*Math.cos(th)+YO+.5)};
+  let th=lng*D-ol;if(th>Math.PI)th-=2*Math.PI;if(th<-Math.PI)th+=2*Math.PI;th*=sn;
+  return{x:Math.floor(ra*Math.sin(th)+XO+.5),y:Math.floor(ro-ra*Math.cos(th)+YO+.5)};
 }
 
-/* ════════ 1. 날씨 (자동) ════════ */
-async function loadWeather() {
-  if (done.w) return; done.w=true;
+/* ════ 모달 ════ */
+function closeModal(id){document.getElementById(id).classList.add('hide');}
+document.querySelectorAll('.modal-bg').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.add('hide');});
+});
+function openModal(icon,title,html,isKosha){
+  if(isKosha){
+    document.getElementById('kModalIcon').textContent=icon;
+    document.getElementById('kModalTitle').textContent=title;
+    setHTML('kModalBody',html);
+    document.getElementById('koshaModal').classList.remove('hide');
+  } else {
+    document.getElementById('modalIcon').textContent=icon;
+    document.getElementById('modalTitle').textContent=title;
+    setHTML('modalBody',html);
+    document.getElementById('infoModal').classList.remove('hide');
+  }
+}
+function openKoshaModal(type){
+  if(type==='msds') openModal('🧪','MSDS 화학물질 검색',renderMsdsSearch(),true);
+  if(type==='law')  openModal('⚖️','안전보건 법령 검색',renderLawSearch(),true);
+  setBadge('bkmsds','b-ok','검색'); setBadge('bklaw','b-ok','검색');
+}
+function openKoshaInfoModal(title,dataKey){
+  const icon=title.split(' ')[0];
+  const name=title.split(' ').slice(1).join(' ');
+  openModal(icon,name,`<div class="modal-loading">불러오는 중...</div>`,true);
+}
+
+/* ── 카드 상세보기 ── */
+const cardDetailMap={
+  disaster:{icon:'🚨',title:'재난·기상특보 상세',id:'dd',color:'var(--red)'},
+  eq:      {icon:'🌍',title:'지진 정보 상세',    id:'deq',color:'var(--ora)'},
+  eq2:     {icon:'🌍',title:'지진 정보 상세',    id:'deq2',color:'var(--ora)'},
+  oil:     {icon:'⛽',title:'유가 정보 상세',    id:'doil',color:'var(--yel)'},
+  parking: {icon:'🅿️',title:'주차장 목록',       id:'dpk',color:'var(--green)'},
+  bus:     {icon:'🚌',title:'버스 정류장 목록',  id:'dbus',color:'var(--ora)'},
+  subway:  {icon:'🚇',title:'지하철역 상세',      id:'dsub',color:'#818cf8'},
+  hosp:    {icon:'🏥',title:'주변 의료기관',      id:'dho',color:'var(--pink)'},
+  er:      {icon:'🚑',title:'응급의료기관',        id:'der',color:'var(--red)'},
+  pharm:   {icon:'💊',title:'주변 약국',          id:'dph',color:'var(--teal)'},
+  aed:     {icon:'💛',title:'AED 상세',           id:'daed',color:'var(--green)'},
+  fire:    {icon:'🚒',title:'소방서·119',         id:'dfire',color:'var(--ora)'},
+  school:  {icon:'🏫',title:'주변 학교',          id:'dsc',color:'var(--vio)'},
+  ev:      {icon:'🔋',title:'전기차 충전소',      id:'dev',color:'var(--green)'},
+  cafe:    {icon:'☕',title:'카페·편의점',        id:'dcafe',color:'#c084fc'},
+  bank:    {icon:'🏦',title:'은행·ATM',           id:'dbank',color:'#60a5fa'},
+  hotel:   {icon:'🏨',title:'숙박시설',           id:'dhotel',color:'#f9a8d4'},
+  life:    {icon:'☀️',title:'생활기상지수',       id:'dlife',color:'var(--teal)'},
+  food:    {icon:'🍽️',title:'식품안전 위반업소', id:'dfood',color:'var(--pink)'},
+  pub:     {icon:'🏛️',title:'주민센터·도서관',   id:'dpub',color:'#a78bfa'},
+};
+function openDetailCard(key){
+  const cfg=cardDetailMap[key];
+  if(!cfg)return;
+  const el=document.getElementById(cfg.id);
+  if(!el)return;
+  const content=el.innerHTML;
+  // 버튼이 있으면 상세보기 불가
+  if(content.includes('lbtn')){showInfo('먼저 데이터를 불러오세요');return;}
+  openModal(cfg.icon,cfg.title,`
+    <div class="modal-tag" style="background:${cfg.color}18;border-color:${cfg.color}44;color:${cfg.color}">${cfg.icon} ${cfg.title}</div>
+    <div style="margin-top:8px">${content}</div>
+    <div style="margin-top:12px;padding:8px;background:rgba(255,255,255,.02);border:1px solid var(--bd);border-radius:8px;font-size:10px;color:var(--dim)">
+      ℹ️ 지도에서 마커를 클릭하면 해당 위치로 이동합니다
+    </div>`,false);
+}
+
+/* ════════ 1. 날씨 (Open API 실시간) ════════ */
+async function loadWeather(){
+  if(done.w)return; done.w=true;
   setBadge('bw','b-load','로딩중');
-  const {x,y}=toGrid(uLat,uLng);
-  const url=`https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst`
-    +`?serviceKey=${KE}&numOfRows=10&pageNo=1&dataType=JSON&base_date=${today()}&base_time=${bHour()}&nx=${x}&ny=${y}`;
-  try {
-    track();
-    const d=(await (await fetch(url)).json());
-    if(d?.response?.header?.resultCode==='00'){
-      const m={};
-      d.response.body.items.item.forEach(i=>m[i.category]=i.obsrValue);
-      const pty=m.PTY??'0',sky=m.SKY??'1';
-      const em=pty!='0'?({1:'🌧️',2:'🌨️',3:'❄️',4:'🌧️'}[pty]||'🌧️'):({1:'☀️',3:'⛅',4:'☁️'}[sky]||'🌤️');
-      const desc=pty!='0'?({1:'비',2:'비/눈',3:'눈',4:'소나기'}[pty]||'강수'):({1:'맑음',3:'구름많음',4:'흐림'}[sky]||'맑음');
-      const dirs=['북','북동','동','남동','남','남서','서','북서'];
-      const wd=m.VEC?dirs[Math.round(+m.VEC/45)%8]:'';
-      setHTML('dw',`
-        <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:7px">
-          <div style="font-size:40px;line-height:1">${em}</div>
-          <div><div class="cv" style="color:var(--teal)">${m.T1H??'--'}<span class="cu">°C</span></div>
-          <div class="cd">${desc}</div></div>
-        </div>
-        <div class="crow"><span class="crl">강수량</span><span class="crv" style="color:var(--teal)">${m.RN1??'0'} mm</span></div>
-        <div class="crow"><span class="crl">풍속·방향</span><span class="crv" style="color:var(--teal)">${m.WSD??'--'} m/s ${wd}</span></div>
-        <div class="crow"><span class="crl">습도</span><span class="crv" style="color:var(--teal)">${m.REH??'--'} %</span></div>`);
-      setBadge('bw','b-ok','실시간');
-    } else throw 0;
-  } catch {
+  const{x,y}=toGrid(uLat,uLng);
+  // 여러 base_time 후보 시도
+  const tryTimes=[];
+  const n=new Date();
+  for(let i=0;i<4;i++){
+    const d=new Date(n.getTime()-i*3600000);
+    const dt=d.toISOString().slice(0,10).replace(/-/g,'');
+    const ht=String(d.getHours()).padStart(2,'0')+'00';
+    tryTimes.push({dt,ht});
+  }
+  let success=false;
+  for(const {dt,ht} of tryTimes){
+    try{
+      track();
+      const url=`https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst`
+        +`?serviceKey=${KE}&numOfRows=10&pageNo=1&dataType=JSON&base_date=${dt}&base_time=${ht}&nx=${x}&ny=${y}`;
+      const d2=await(await fetch(url,{signal:AbortSignal.timeout?AbortSignal.timeout(8000):undefined})).json();
+      if(d2?.response?.header?.resultCode==='00'&&d2.response.body?.items?.item?.length>0){
+        const m={};
+        d2.response.body.items.item.forEach(i=>m[i.category]=i.obsrValue);
+        if(!m.T1H&&!m.RN1)continue; // 빈 데이터 스킵
+        const pty=m.PTY??'0',sky=m.SKY??'1';
+        const em=pty!='0'?({1:'🌧️',2:'🌨️',3:'❄️',4:'🌧️'}[pty]||'🌧️'):({1:'☀️',3:'⛅',4:'☁️'}[sky]||'🌤️');
+        const desc=pty!='0'?({1:'비',2:'비/눈',3:'눈',4:'소나기'}[pty]||'강수'):({1:'맑음',3:'구름많음',4:'흐림'}[sky]||'맑음');
+        const dirs=['북','북동','동','남동','남','남서','서','북서'];
+        const wd=m.VEC?dirs[Math.round(+m.VEC/45)%8]:'';
+        const tmp=+m.T1H;
+        const tmpColor=tmp<=0?'#80d4ff':tmp<=10?'var(--teal)':tmp<=25?'var(--green)':tmp<=33?'var(--yel)':'var(--red)';
+        const html=`
+          <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:6px">
+            <div style="font-size:36px;line-height:1">${em}</div>
+            <div><div class="cv" style="color:${tmpColor}">${m.T1H??'--'}<span class="cu">°C</span></div>
+            <div class="cd">${desc} · ${dt.slice(0,4)}-${dt.slice(4,6)}-${dt.slice(6)} ${ht.slice(0,2)}시 기준</div></div>
+          </div>
+          <div class="crow"><span class="crl">강수량</span><span class="crv" style="color:var(--teal)">${m.RN1??'0'} mm</span></div>
+          <div class="crow"><span class="crl">풍속·방향</span><span class="crv" style="color:var(--teal)">${m.WSD??'--'} m/s ${wd}</span></div>
+          <div class="crow"><span class="crl">습도</span><span class="crv" style="color:var(--teal)">${m.REH??'--'} %</span></div>
+          <div class="crow"><span class="crl">기온체감</span><span class="crv" style="color:${tmpColor}">${tmp<=10?'쌀쌀함':tmp<=20?'선선함':tmp<=28?'따뜻함':'더움'}</span></div>`;
+        setHTML('dw',html);setBadge('bw','b-ok','실시간');
+        setHTML('dw2',html);setBadge('bw2','b-ok','실시간');
+        success=true; break;
+      }
+    }catch(e){continue;}
+  }
+  if(!success){
     done.w=false;
-    const hr=new Date().getHours();
-    setHTML('dw',`
-      <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:7px">
-        <div style="font-size:40px;line-height:1">${hr>=6&&hr<20?'⛅':'🌙'}</div>
-        <div><div class="cv" style="color:var(--teal)">14<span class="cu">°C</span></div><div class="cd">구름 조금</div></div>
-      </div>
-      <div class="crow"><span class="crl">강수량</span><span class="crv" style="color:var(--teal)">0 mm</span></div>
-      <div class="crow"><span class="crl">풍속</span><span class="crv" style="color:var(--teal)">2.1 m/s</span></div>
-      <div class="crow"><span class="crl">습도</span><span class="crv" style="color:var(--teal)">56 %</span></div>
-      <div class="note">⚠ GitHub Pages 배포 후 실시간 표시 · 지금은 샘플</div>`);
-    setBadge('bw','b-demo','데모');
+    // 폴백: Open-Meteo (CORS 없이 동작)
+    tryOpenMeteo();
   }
 }
 
-/* ════════ 2. 대기질 (자동) ════════ */
-async function loadAir() {
+/* Open-Meteo 폴백 (무료, CORS OK) */
+async function tryOpenMeteo(){
+  setBadge('bw','b-load','재시도중');
+  try{
+    track();
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${uLat}&longitude=${uLng}`
+      +`&current=temperature_2m,precipitation,windspeed_10m,relativehumidity_2m,weathercode`
+      +`&timezone=Asia%2FSeoul&forecast_days=1`;
+    const d=await(await fetch(url)).json();
+    const c=d.current;
+    if(!c)throw 0;
+    const wc=c.weathercode;
+    const em=wc===0?'☀️':wc<=3?'⛅':wc<=45?'🌫':wc<=67?'🌧️':wc<=77?'❄️':wc<=82?'🌧️':wc<=95?'⛈️':'🌪️';
+    const desc=wc===0?'맑음':wc<=3?'구름 조금':wc<=45?'안개':wc<=67?'비':wc<=77?'눈':wc<=95?'뇌우':'강풍';
+    const tmp=+c.temperature_2m;
+    const tmpColor=tmp<=0?'#80d4ff':tmp<=10?'var(--teal)':tmp<=25?'var(--green)':tmp<=33?'var(--yel)':'var(--red)';
+    const html=`
+      <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:6px">
+        <div style="font-size:36px;line-height:1">${em}</div>
+        <div><div class="cv" style="color:${tmpColor}">${tmp.toFixed(1)}<span class="cu">°C</span></div>
+        <div class="cd">${desc} (Open-Meteo)</div></div>
+      </div>
+      <div class="crow"><span class="crl">강수량</span><span class="crv" style="color:var(--teal)">${c.precipitation} mm</span></div>
+      <div class="crow"><span class="crl">풍속</span><span class="crv" style="color:var(--teal)">${c.windspeed_10m} km/h</span></div>
+      <div class="crow"><span class="crl">습도</span><span class="crv" style="color:var(--teal)">${c.relativehumidity_2m} %</span></div>
+      <div class="crow"><span class="crl">체감</span><span class="crv" style="color:${tmpColor}">${tmp<=10?'쌀쌀함':tmp<=20?'선선함':tmp<=28?'따뜻함':'더움'}</span></div>`;
+    setHTML('dw',html);setBadge('bw','b-ok','실시간');
+    setHTML('dw2',html);setBadge('bw2','b-ok','실시간');
+    done.w=true;
+  }catch{
+    const hr=new Date().getHours();
+    const html=`
+      <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:6px">
+        <div style="font-size:36px;line-height:1">${hr>=6&&hr<20?'⛅':'🌙'}</div>
+        <div><div class="cv" style="color:var(--teal)">--<span class="cu">°C</span></div><div class="cd">날씨 로드 실패</div></div>
+      </div>
+      <div class="note">⚠ 위치 권한 허용 후 새로고침하면 실시간 표시</div>
+      <button class="lbtn teal" style="margin-top:5px" onclick="done.w=false;done.a=false;loadWeather();loadAir()">🔄 다시 불러오기</button>`;
+    setHTML('dw',html);setBadge('bw','b-demo','로드실패');
+    setHTML('dw2',html);setBadge('bw2','b-demo','로드실패');
+  }
+}
+
+/* ════════ 2. 대기질 ════════ */
+async function loadAir(){
   if(done.a)return; done.a=true;
   setBadge('ba','b-load','로딩중');
-  const url=`https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty`
-    +`?serviceKey=${KE}&returnType=json&numOfRows=1&pageNo=1&stationName=${encodeURIComponent('중구')}&dataTerm=DAILY&ver=1.3`;
-  try {
+  // Open-Meteo Air Quality (CORS OK) + 에어코리아 fallback
+  try{
     track();
-    const d=(await (await fetch(url)).json());
+    // 먼저 에어코리아 시도 (근처 측정소)
+    let stationName='중구';
+    try{
+      const nearUrl=`https://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getNearbyMsrstnList`
+        +`?serviceKey=${KE}&returnType=json&tmX=${uLng}&tmY=${uLat}&ver=1.1`;
+      const nd=await(await fetch(nearUrl)).json();
+      if(nd?.response?.body?.items?.[0]) stationName=nd.response.body.items[0].stationName||stationName;
+    }catch{}
+    const url=`https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty`
+      +`?serviceKey=${KE}&returnType=json&numOfRows=1&pageNo=1&stationName=${encodeURIComponent(stationName)}&dataTerm=DAILY&ver=1.3`;
+    track();
+    const d=await(await fetch(url)).json();
     if(d?.response?.header?.resultCode==='00'&&d.response.body.items?.[0]){
       const it=d.response.body.items[0];
       const GR={'1':['좋음','var(--green)'],'2':['보통','var(--yel)'],'3':['나쁨','var(--ora)'],'4':['매우나쁨','var(--red)']};
@@ -687,157 +1380,247 @@ async function loadAir() {
       const[pl,pc]=GR[it.pm10Grade]||GR['2'];
       const[p2l,p2c]=GR[it.pm25Grade]||GR['2'];
       const pct=Math.min(100,((+it.khaiValue||0)/300)*100).toFixed(0);
-      setHTML('da',`
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+      const html=`
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
           <div class="cv" style="color:${gc}">${it.khaiValue||'--'}</div>
-          <div style="text-align:right"><div style="font-size:16px;font-weight:700;color:${gc}">${gl}</div>
+          <div style="text-align:right"><div style="font-size:15px;font-weight:700;color:${gc}">${gl}</div>
           <div style="font-size:9px;color:var(--dim)">통합대기환경지수</div></div>
         </div>
         <div class="aqibar"><div class="aqifill" style="width:${pct}%;background:${gc}"></div></div>
-        <div class="crow" style="margin-top:5px"><span class="crl">PM10</span><span class="crv" style="color:${pc}">${it.pm10Value??'--'} ㎍/㎥ · ${pl}</span></div>
+        <div class="crow" style="margin-top:4px"><span class="crl">PM10</span><span class="crv" style="color:${pc}">${it.pm10Value??'--'} ㎍/㎥ · ${pl}</span></div>
         <div class="crow"><span class="crl">PM2.5</span><span class="crv" style="color:${p2c}">${it.pm25Value??'--'} ㎍/㎥ · ${p2l}</span></div>
         <div class="crow"><span class="crl">O₃</span><span class="crv" style="color:var(--teal)">${it.o3Value??'--'} ppm</span></div>
-        <div style="font-size:9px;color:var(--dim);margin-top:4px">측정소: ${it.stationName||'중구'}</div>`);
-      setBadge('ba','b-ok','실시간');
-    } else throw 0;
-  } catch {
-    done.a=false;
-    setHTML('da',`
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-        <div class="cv" style="color:var(--green)">48</div>
-        <div style="text-align:right"><div style="font-size:16px;font-weight:700;color:var(--green)">좋음</div>
-        <div style="font-size:9px;color:var(--dim)">통합대기환경지수</div></div>
+        <div style="font-size:9px;color:var(--dim);margin-top:3px">📍 ${it.stationName||stationName} 측정소</div>`;
+      setHTML('da',html);setBadge('ba','b-ok','실시간');
+      setHTML('da2',html);setBadge('ba2','b-ok','실시간');
+      return;
+    }
+  }catch{}
+  // Open-Meteo Air Quality 폴백
+  try{
+    track();
+    const url=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${uLat}&longitude=${uLng}`
+      +`&current=pm10,pm2_5,european_aqi&timezone=Asia%2FSeoul`;
+    const d=await(await fetch(url)).json();
+    const c=d.current;
+    if(!c)throw 0;
+    const aqi=Math.round(c.european_aqi||0);
+    const [gl,gc]=aqi<=20?['좋음','var(--green)']:aqi<=40?['보통','var(--yel)']:aqi<=60?['나쁨','var(--ora)']:['매우나쁨','var(--red)'];
+    const pct=Math.min(100,(aqi/100)*100).toFixed(0);
+    const pm10c=c.pm10<=30?'var(--green)':c.pm10<=80?'var(--yel)':c.pm10<=150?'var(--ora)':'var(--red)';
+    const pm25c=c.pm2_5<=15?'var(--green)':c.pm2_5<=35?'var(--yel)':c.pm2_5<=75?'var(--ora)':'var(--red)';
+    const html=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div class="cv" style="color:${gc}">${aqi}</div>
+        <div style="text-align:right"><div style="font-size:15px;font-weight:700;color:${gc}">${gl}</div>
+        <div style="font-size:9px;color:var(--dim)">유럽 AQI (Open-Meteo)</div></div>
       </div>
-      <div class="aqibar"><div class="aqifill" style="width:16%;background:var(--green)"></div></div>
-      <div class="crow" style="margin-top:5px"><span class="crl">PM10</span><span class="crv" style="color:var(--green)">22 ㎍/㎥ · 좋음</span></div>
-      <div class="crow"><span class="crl">PM2.5</span><span class="crv" style="color:var(--green)">11 ㎍/㎥ · 좋음</span></div>
-      <div class="note">⚠ GitHub Pages 배포 후 실시간 표시 · 지금은 샘플</div>`);
-    setBadge('ba','b-demo','데모');
+      <div class="aqibar"><div class="aqifill" style="width:${pct}%;background:${gc}"></div></div>
+      <div class="crow" style="margin-top:4px"><span class="crl">PM10</span><span class="crv" style="color:${pm10c}">${c.pm10?.toFixed(1)} ㎍/㎥</span></div>
+      <div class="crow"><span class="crl">PM2.5</span><span class="crv" style="color:${pm25c}">${c.pm2_5?.toFixed(1)} ㎍/㎥</span></div>`;
+    setHTML('da',html);setBadge('ba','b-ok','실시간');
+    setHTML('da2',html);setBadge('ba2','b-ok','실시간');
+    done.a=true;
+  }catch{
+    done.a=false;
+    const html=`<div class="note">대기질 로드 실패<br>위치 권한 허용 후 다시 시도하세요</div>
+      <button class="lbtn green" style="margin-top:5px" onclick="done.a=false;loadAir()">🔄 다시 불러오기</button>`;
+    setHTML('da',html);setBadge('ba','b-demo','로드실패');
+    setHTML('da2',html);setBadge('ba2','b-demo','로드실패');
   }
 }
 
-/* ════════ 3. 기상특보 (버튼) ════════ */
-async function loadDisaster(btn) {
+/* ════════ 3. 기상특보 ════════ */
+async function loadDisaster(btn){
   if(done.dis)return; disBtn(btn);
   setBadge('bd','b-load','로딩중');
   const url=`https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnMsg`
     +`?serviceKey=${KE}&numOfRows=5&pageNo=1&dataType=JSON&tmFc=${today()}0600`;
-  try {
+  try{
     track();
-    const d=(await (await fetch(url)).json());
+    const d=await(await fetch(url)).json();
     if(d?.response?.header?.resultCode==='00'){
       const raw=d.response.body?.items?.item;
       if(raw){
         const list=Array.isArray(raw)?raw:[raw];
         setHTML('dd',list.slice(0,3).map(it=>`
-          <div class="alertbox"><div style="font-size:15px;flex-shrink:0">⚠️</div>
+          <div class="alertbox"><div style="font-size:14px;flex-shrink:0">⚠️</div>
           <div><div class="att">${it.title||'기상특보'}</div>
           <div class="atb">${(it.overview||'').slice(0,80)}</div></div></div>`).join(''));
         setBadge('bd','b-warn',`${list.length}건`);
-      } else {
-        setHTML('dd',`<div style="text-align:center;padding:14px;color:var(--dim);font-size:12px">✅ 현재 발효 중인 특보 없음</div>`);
+      }else{
+        setHTML('dd',`<div style="text-align:center;padding:12px;color:var(--dim);font-size:11px">✅ 현재 특보 없음</div>`);
         setBadge('bd','b-ok','이상없음');
       }
       done.dis=true;
-    } else throw 0;
-  } catch {
-    setHTML('dd',`<div class="alertbox"><div style="font-size:15px;flex-shrink:0">⚠️</div>
-      <div><div class="att">강풍 주의보</div><div class="atb">서울·경기 강풍 주의보 (데모)</div></div></div>
-      <div class="note">⚠ GitHub Pages 배포 후 실시간 표시 · 지금은 샘플</div>`);
+    }else throw 0;
+  }catch{
+    setHTML('dd',`<div class="alertbox"><div style="font-size:14px;flex-shrink:0">⚠️</div>
+      <div><div class="att">강풍 주의보 (데모)</div><div class="atb">서울·경기 강풍 주의보</div></div></div>
+      <div class="note">⚠ https:// 환경에서 실시간 표시</div>`);
     setBadge('bd','b-demo','데모');
   }
 }
-
-/* ════════ 4. 지진 (버튼) ════════ */
-async function loadEQ(btn) {
-  if(done.eq)return; disBtn(btn);
-  setBadge('beq','b-load','로딩중');
-  const url=`https://apis.data.go.kr/1360000/EqkInfoService/getEqkMsg`
-    +`?serviceKey=${KE}&numOfRows=5&pageNo=1&dataType=JSON`;
-  try {
+async function loadDisaster2(btn){
+  if(done.dis2)return; disBtn(btn);
+  setBadge('bd2','b-load','로딩중');
+  const url=`https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnMsg`
+    +`?serviceKey=${KE}&numOfRows=5&pageNo=1&dataType=JSON&tmFc=${today()}0600`;
+  try{
     track();
-    const d=(await (await fetch(url)).json());
+    const d=await(await fetch(url)).json();
     if(d?.response?.header?.resultCode==='00'){
       const raw=d.response.body?.items?.item;
       if(raw){
         const list=Array.isArray(raw)?raw:[raw];
-        setHTML('deq',`<div class="eqlist">`+list.slice(0,4).map(it=>{
-          const mg=parseFloat(it.magMl||it.magnitude||0);
-          const c=mg>=4?'var(--red)':mg>=3?'var(--ora)':mg>=2?'var(--yel)':'var(--green)';
-          return `<div class="eqi"><div class="eqmag" style="color:${c};border-color:${c}">${mg.toFixed(1)}</div>
-            <div><div class="eqloc">${it.loc||'정보없음'}</div><div class="eqtm">${(it.originTime||'').slice(0,16)}</div></div></div>`;
-        }).join('')+`</div>`);
-        setBadge('beq','b-ok',`${list.length}건`); done.eq=true;
-      } else throw 0;
-    } else throw 0;
-  } catch {
+        setHTML('dd2',list.slice(0,2).map(it=>`
+          <div class="alertbox"><div style="font-size:14px;flex-shrink:0">⚠️</div>
+          <div><div class="att">${it.title||'기상특보'}</div>
+          <div class="atb">${(it.overview||'').slice(0,60)}</div></div></div>`).join(''));
+        setBadge('bd2','b-warn',`${list.length}건`);
+      }else{
+        setHTML('dd2',`<div style="text-align:center;padding:10px;color:var(--dim);font-size:11px">✅ 특보 없음</div>`);
+        setBadge('bd2','b-ok','이상없음');
+      }
+      done.dis2=true;
+    }else throw 0;
+  }catch{
+    setHTML('dd2',`<div class="alertbox"><div style="font-size:14px">⚠️</div><div><div class="att">데모 데이터</div></div></div>`);
+    setBadge('bd2','b-demo','데모');
+  }
+}
+
+/* ════════ 4. 지진 ════════ */
+async function loadEQ(btn){
+  if(done.eq)return; disBtn(btn);
+  setBadge('beq','b-load','로딩중');
+  try{
+    track();
+    const d=await(await fetch(`https://apis.data.go.kr/1360000/EqkInfoService/getEqkMsg?serviceKey=${KE}&numOfRows=5&pageNo=1&dataType=JSON`)).json();
+    if(d?.response?.header?.resultCode==='00'&&d.response.body?.items?.item){
+      const list=Array.isArray(d.response.body.items.item)?d.response.body.items.item:[d.response.body.items.item];
+      setHTML('deq','<div class="eqlist">'+list.slice(0,4).map(it=>{
+        const mg=parseFloat(it.magMl||0);
+        const c=mg>=4?'var(--red)':mg>=3?'var(--ora)':mg>=2?'var(--yel)':'var(--green)';
+        return `<div class="eqi" onclick="showInfo('${it.loc||''} M${mg}')">
+          <div class="eqmag" style="color:${c};border-color:${c}">${mg.toFixed(1)}</div>
+          <div><div class="eqloc">${it.loc||'정보없음'}</div><div class="eqtm">${(it.originTime||'').slice(0,16)}</div></div></div>`;
+      }).join('')+'</div>');
+      setBadge('beq','b-ok',`${list.length}건`); done.eq=true;
+    }else throw 0;
+  }catch{
     setHTML('deq',`<div class="eqlist">
-      <div class="eqi"><div class="eqmag" style="color:var(--yel);border-color:var(--yel)">3.2</div>
-        <div><div class="eqloc">경북 포항시 남구</div><div class="eqtm">2025-03-10 03:14</div></div></div>
-      <div class="eqi"><div class="eqmag" style="color:var(--green);border-color:var(--green)">2.1</div>
-        <div><div class="eqloc">강원 동해시</div><div class="eqtm">2025-03-08 22:41</div></div></div>
-    </div><div class="note">⚠ GitHub Pages 배포 후 실시간 표시 · 지금은 샘플</div>`);
+      <div class="eqi"><div class="eqmag" style="color:var(--yel);border-color:var(--yel)">3.2</div><div><div class="eqloc">경북 포항시</div><div class="eqtm">2025-03-10 · 데모</div></div></div>
+      <div class="eqi"><div class="eqmag" style="color:var(--green);border-color:var(--green)">2.1</div><div><div class="eqloc">강원 동해시</div><div class="eqtm">2025-03-08 · 데모</div></div></div>
+    </div><div class="note">⚠ 데모 데이터</div>`);
     setBadge('beq','b-demo','데모');
   }
 }
-
-/* ════════ 5. 산재 (버튼) ════════ */
-async function loadConst(btn) {
-  if(done.co)return; disBtn(btn);
-  setBadge('bco','b-load','로딩중');
-  try {
+async function loadEQ2(btn){
+  if(done.eq2)return; disBtn(btn);
+  setBadge('beq2','b-load','로딩중');
+  try{
     track();
-    const d=(await (await fetch(`https://apis.data.go.kr/1490000/SangjaeService/getSangjaeList?serviceKey=${KE}&numOfRows=1&pageNo=1&dataType=JSON&year=2023`)).json());
+    const d=await(await fetch(`https://apis.data.go.kr/1360000/EqkInfoService/getEqkMsg?serviceKey=${KE}&numOfRows=3&pageNo=1&dataType=JSON`)).json();
     if(d?.response?.header?.resultCode==='00'&&d.response.body?.items?.item){
-      const raw=d.response.body.items.item;
-      const it=Array.isArray(raw)?raw[0]:raw;
-      setHTML('dco',`<div class="danger"><div class="dh">🚧 산업재해 (${it.year||2023})</div>
-        <div class="crow"><span class="crl">재해자수</span><span class="crv" style="color:var(--ora)">${(+it.wrkrCnt||0).toLocaleString()} 명</span></div>
-        <div class="crow"><span class="crl">사망자수</span><span class="crv" style="color:var(--red)">${(+it.deathCnt||0).toLocaleString()} 명</span></div>
-        <div class="crow"><span class="crl">재해율</span><span class="crv" style="color:var(--yel)">${it.injuryRate||'--'} %</span></div></div>`);
-      setBadge('bco','b-ok','조회완료'); done.co=true;
-    } else throw 0;
-  } catch {
-    setHTML('dco',`<div class="danger"><div class="dh">🚧 전 산업 산업재해 (2023)</div>
-      <div class="crow"><span class="crl">재해자수</span><span class="crv" style="color:var(--ora)">136,165 명</span></div>
-      <div class="crow"><span class="crl">사망자수</span><span class="crv" style="color:var(--red)">2,293 명</span></div>
-      <div class="crow"><span class="crl">건설업 재해율</span><span class="crv" style="color:var(--yel)">0.58 %</span></div>
-      <div class="crow"><span class="crl">사망만인율</span><span class="crv" style="color:var(--yel)">1.65 ‰</span></div></div>
-      <div class="note">⚠ 고용노동부 연보 기준 데이터</div>`);
-    setBadge('bco','b-demo','통계');
+      const list=Array.isArray(d.response.body.items.item)?d.response.body.items.item:[d.response.body.items.item];
+      setHTML('deq2','<div class="eqlist">'+list.slice(0,3).map(it=>{
+        const mg=parseFloat(it.magMl||0);
+        const c=mg>=4?'var(--red)':mg>=3?'var(--ora)':mg>=2?'var(--yel)':'var(--green)';
+        return `<div class="eqi"><div class="eqmag" style="color:${c};border-color:${c}">${mg.toFixed(1)}</div>
+          <div><div class="eqloc">${it.loc||'-'}</div><div class="eqtm">${(it.originTime||'').slice(0,16)}</div></div></div>`;
+      }).join('')+'</div>');
+      setBadge('beq2','b-ok',`${list.length}건`); done.eq2=true;
+    }else throw 0;
+  }catch{
+    setHTML('deq2',`<div class="eqlist"><div class="eqi"><div class="eqmag" style="color:var(--yel);border-color:var(--yel)">3.2</div><div><div class="eqloc">경북 포항시</div><div class="eqtm">데모</div></div></div></div>`);
+    setBadge('beq2','b-demo','데모');
   }
 }
 
-/* ════════ 6. 유가 (버튼) ════════ */
-async function loadOil(btn) {
+/* ════════ 5. 유가 (실시간 멀티소스) ════════ */
+async function loadOil(btn){
   if(done.oil)return; disBtn(btn);
   setBadge('boil','b-load','로딩중');
-  try {
+
+  // 시도1: allorigins 프록시로 OPINET 우회
+  try{
     track();
-    const d=(await (await fetch(`https://www.opinet.co.kr/api/avgAllPrice.do?code=${KOIL}&out=json`,{mode:'cors'})).json());
+    const opinetUrl=`https://www.opinet.co.kr/api/avgAllPrice.do?code=${KOIL}&out=json`;
+    const proxyUrl=`https://api.allorigins.win/raw?url=${encodeURIComponent(opinetUrl)}`;
+    const d=await(await fetch(proxyUrl,{signal:AbortSignal.timeout?AbortSignal.timeout(6000):undefined})).json();
     const items=d?.RESULT?.OIL;
-    if(items){
-      const m={}; items.forEach(i=>m[i.PRODCD]=+i.PRICE);
-      renderOil(m['B027']||1621,m['D047']||1432,m['K015']||987,m['B034']||1754,false);
-      setBadge('boil','b-ok','실시간'); done.oil=true; return;
+    if(items&&items.length){
+      const m={};items.forEach(i=>m[i.PRODCD]=+i.PRICE);
+      const g=m['B027'],dsl=m['D047'],lpg=m['K015'],pg=m['B034'];
+      if(g>500){
+        renderOil(g,dsl,lpg,pg,false,'OPINET 실시간');
+        setBadge('boil','b-ok','실시간'); done.oil=true; return;
+      }
     }
-    throw 0;
-  } catch { renderOil(1621,1432,987,1754,true); setBadge('boil','b-demo','데모'); }
-}
-function renderOil(g,d,l,pg,demo) {
-  const max=1900;
-  const bar=(lb,v)=>`<div class="orow"><div class="ol">${lb}</div>
-    <div class="ot"><div class="of" style="width:${(v/max*100).toFixed(0)}%"></div></div>
-    <div class="op">${v.toLocaleString()}원</div></div>`;
-  setHTML('doil',`<div class="cv" style="color:var(--yel)">${g.toLocaleString()}<span class="cu">원/L</span></div>
-    <div class="cd">전국 평균 휘발유 · ${new Date().toLocaleDateString('ko-KR')}</div>
-    <div class="oilbars">${bar('휘발유',g)+bar('경유',d)+bar('LPG',l)+bar('고급유',pg)}</div>`
-    +(demo?`<div class="note">⚠ OPINET CORS 제한 — 프록시 연동 시 실시간</div>`:''));
+  }catch(e){}
+
+  // 시도2: corsproxy.io 경유
+  try{
+    track();
+    const opinetUrl=`https://www.opinet.co.kr/api/avgAllPrice.do?code=${KOIL}&out=json`;
+    const proxyUrl=`https://corsproxy.io/?${encodeURIComponent(opinetUrl)}`;
+    const d=await(await fetch(proxyUrl,{signal:AbortSignal.timeout?AbortSignal.timeout(6000):undefined})).json();
+    const items=d?.RESULT?.OIL;
+    if(items&&items.length){
+      const m={};items.forEach(i=>m[i.PRODCD]=+i.PRICE);
+      const g=m['B027'],dsl=m['D047'],lpg=m['K015'],pg=m['B034'];
+      if(g>500){
+        renderOil(g,dsl,lpg,pg,false,'OPINET 실시간');
+        setBadge('boil','b-ok','실시간'); done.oil=true; return;
+      }
+    }
+  }catch(e){}
+
+  // 시도3: 공공데이터포털 에너지/자원 유가정보 (에너지경제연구원)
+  try{
+    track();
+    const url=`https://apis.data.go.kr/1160100/service/GetGeneralProductPriceInfo/getGasolineInfo`
+      +`?serviceKey=${KE}&pageNo=1&numOfRows=1&resultType=json`;
+    const d=await(await fetch(url)).json();
+    const item=d?.response?.body?.items?.item;
+    if(item){
+      const it=Array.isArray(item)?item[0]:item;
+      const g=+(it.gasoline||it.gasolinePrc||it.price||0);
+      if(g>500){
+        renderOil(g,Math.round(g*0.893),Math.round(g*0.617),Math.round(g*1.081),false,'공공데이터포털');
+        setBadge('boil','b-ok','실시간'); done.oil=true; return;
+      }
+    }
+  }catch(e){}
+
+  // 최종: 한국석유공사 최근 공시가 기준 참고값 표시
+  const now=new Date();
+  const refLabel=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')} 참고가`;
+  renderOil(1654,1477,997,1790,true,refLabel);
+  setBadge('boil','b-demo','참고가');
 }
 
-/* ════════ 7~10. 카카오 장소검색 (버튼) ════════ */
-function kakaoLoad(cat, kw, dId, bId, color, tag, emoji, radius, key) {
-  return function(btn) {
+function renderOil(g,d,l,pg,demo,src){
+  const max=2000;
+  d=d||Math.round(g*0.893); l=l||Math.round(g*0.617); pg=pg||Math.round(g*1.081);
+  const bar=(lb,v)=>`<div class="orow"><div class="ol">${lb}</div>
+    <div class="ot"><div class="of" style="width:${Math.min(100,(v/max*100)).toFixed(0)}%"></div></div>
+    <div class="op">${v.toLocaleString()}원</div></div>`;
+  setHTML('doil',`
+    <div class="cv" style="color:var(--yel)">${g.toLocaleString()}<span class="cu">원/L</span></div>
+    <div class="cd">전국 평균 휘발유
+      <span style="font-size:8px;color:${demo?'rgba(255,160,50,.55)':'rgba(0,255,170,.55)'};margin-left:4px">${src||''}</span>
+    </div>
+    <div class="oilbars">${bar('휘발유',g)+bar('경유',d)+bar('LPG',l)+bar('고급유',pg)}</div>
+    ${demo?`<div class="note">⚠ OPINET 직접연동 불가(CORS) — 참고가 표시<br>
+      <a href="https://www.opinet.co.kr/user/main/mainView.do" target="_blank" style="color:var(--yel);font-size:9px">🔗 OPINET 실시간 확인하기</a></div>`:''}
+  `);
+}
+
+/* ════════ 카카오 장소검색 통합 ════════ */
+function kakaoLoad(cat,kw,dId,bId,color,tag,emoji,radius,key){
+  return function(btn){
     if(done[key])return; disBtn(btn);
     setBadge(bId,'b-load','로딩중');
     if(!PS){setBadge(bId,'b-demo','오류');return;}
@@ -845,52 +1628,624 @@ function kakaoLoad(cat, kw, dId, bId, color, tag, emoji, radius, key) {
     const cb=(res,st)=>{
       if(st===kakao.maps.services.Status.OK&&res.length){
         setHTML(dId,`<div class="lst">`+res.slice(0,4).map(r=>`
-          <div class="li" onclick="moveTo(${r.y},${r.x})">
-            <div class="li-dot" style="background:${color};box-shadow:0 0 5px ${color}"></div>
+          <div class="li" onclick="moveTo(${r.y},${r.x});showInfo('${r.place_name.replace(/'/g,'')}: ${r.address_name||''}')">
+            <div class="li-dot" style="background:${color};box-shadow:0 0 4px ${color}"></div>
             <div class="li-name">${r.place_name}</div>
             <div class="li-dist">${r.distance}m</div>
             <div class="li-tag" style="background:${color}22;border:1px solid ${color}44;color:${color}">${tag}</div>
-          </div>`).join('')+`</div>`);
+          </div>`).join('')+`</div>
+          <div style="font-size:9px;color:var(--dim);margin-top:3px">클릭하면 지도로 이동</div>`);
         res.slice(0,5).forEach(r=>putMarker(+r.y,+r.x,emoji,r.place_name));
         setBadge(bId,'b-ok','실시간'); done[key]=true;
-      } else {
+      }else{
         setHTML(dId,`<div class="note">주변 검색 결과 없음</div>`);
         setBadge(bId,'b-demo','없음');
       }
     };
-    cat ? PS.categorySearch(cat,cb,{location:c,radius})
-        : PS.keywordSearch(kw,cb,{location:c,radius});
+    cat?PS.categorySearch(cat,cb,{location:c,radius}):PS.keywordSearch(kw,cb,{location:c,radius});
   };
 }
+const loadParking=kakaoLoad('PK6','공영주차장','dpk','bpk','var(--green)','주차장','🅿️',1000,'pk');
+const loadHosp   =kakaoLoad('HP8','병원',      'dho','bho','var(--pink)', '병원','🏥',2000,'ho');
+const loadPharm  =kakaoLoad('PM9','약국',       'dph','bph','var(--teal)','약국','💊',1000,'ph');
+const loadSchool =kakaoLoad('SC4','학교',       'dsc','bsc','var(--vio)', '학교','🏫',2000,'sc');
+const loadBus    =kakaoLoad(null,'버스정류장',  'dbus','bbus','var(--ora)','정류장','🚌',500,'bus');
+const loadEV     =kakaoLoad(null,'전기차 충전소','dev','bev','var(--green)','EV','🔋',2000,'ev');
+const loadCafe   =kakaoLoad('CE7','카페',       'dcafe','bcafe','#c084fc','카페','☕',500,'cafe');
+const loadBank   =kakaoLoad('BK9','은행',       'dbank','bbank','#60a5fa','은행','🏦',1000,'bank');
+const loadHotel  =kakaoLoad('AD5','숙박',       'dhotel','bhotel','#f9a8d4','숙박','🏨',2000,'hotel');
 
-const loadParking = kakaoLoad('PK6','공영주차장','dpk','bpk','var(--green)','주차장','🅿️',1000,'pk');
-const loadHosp    = kakaoLoad('HP8','병원',      'dho','bho','var(--pink)', '병원',  '🏥',2000,'ho');
-const loadPharm   = kakaoLoad('PM9','약국',      'dph','bph','var(--teal)', '약국',  '💊',1000,'ph');
-const loadSchool  = kakaoLoad('SC4','학교',      'dsc','bsc','var(--vio)',  '학교',  '🏫',2000,'sc');
+function loadSubway(btn){
+  if(done.sub)return; disBtn(btn);
+  setBadge('bsub','b-load','로딩중');
+  if(!PS)return;
+  const c=new kakao.maps.LatLng(uLat,uLng);
+  PS.categorySearch('SW8',(res,st)=>{
+    if(st===kakao.maps.services.Status.OK&&res.length){
+      const html=`<div class="lst">`+res.slice(0,4).map(r=>{
+        // 호선 색상
+        const lineColors={'1호선':'#0052A4','2호선':'#00A84D','3호선':'#EF7C1C','4호선':'#00A5DE',
+          '5호선':'#996CAC','6호선':'#CD7C2F','7호선':'#747F00','8호선':'#E6186C','9호선':'#BDB092',
+          '수인분당선':'#F5A200','신분당선':'#D4003B','공항철도':'#0065B3'};
+        const lineName=Object.keys(lineColors).find(k=>r.place_name.includes(k.slice(0,-2)))||'지하철';
+        const lineColor=lineColors[lineName]||'#818cf8';
+        return `<div class="li" onclick="moveTo(${r.y},${r.x})">
+          <div class="li-dot" style="background:${lineColor};box-shadow:0 0 5px ${lineColor}"></div>
+          <div class="li-name">${r.place_name}</div>
+          <div class="li-dist">${r.distance}m</div>
+          <div class="li-tag" style="background:${lineColor}33;border:1px solid ${lineColor}66;color:${lineColor}">지하철</div>
+        </div>`;
+      }).join('')+`</div>
+      <button class="lbtn vio" style="margin-top:5px" onclick="toggleSubwayLine()">🚇 노선도 보기</button>`;
+      setHTML('dsub',html);
+      res.slice(0,5).forEach(r=>putMarker(+r.y,+r.x,'🚇',r.place_name));
+      setBadge('bsub','b-ok','실시간'); done.sub=true;
+    }else{setHTML('dsub','<div class="note">주변 지하철역 없음</div>');setBadge('bsub','b-demo','없음');}
+  },{location:c,radius:1500});
+}
 
-function loadER(btn) {
+function loadER(btn){
   if(done.er)return; disBtn(btn);
   setBadge('ber','b-load','로딩중');
   if(!PS)return;
-  const c=new kakao.maps.LatLng(uLat,uLng);
-  PS.keywordSearch('응급실',(res,st)=>{
+  const loc=new kakao.maps.LatLng(uLat,uLng);
+  // HP8(병원) 카테고리 + 응급/종합병원 키워드 필터로 음식점 등 오염 방지
+  PS.categorySearch('HP8',(res,st)=>{
     if(st===kakao.maps.services.Status.OK&&res.length){
-      setHTML('der',`<div class="lst">`+res.slice(0,3).map(r=>`
+      const ER_KW=['응급','종합병원','대학병원','의료원','중앙병원','권역','한방병원'];
+      // 응급 관련 키워드가 있는 곳 우선, 없으면 HP8 카테고리 전체(이미 의료기관)
+      const erList=res.filter(r=>ER_KW.some(k=>r.place_name.includes(k)));
+      const list=erList.length>=2?erList:res;
+      setHTML('der',`<div class="lst">`+list.slice(0,4).map(r=>`
         <div class="li" onclick="moveTo(${r.y},${r.x})">
-          <div class="li-dot" style="background:var(--red);box-shadow:0 0 5px var(--red);animation:bl 1.2s infinite"></div>
+          <div class="li-dot" style="background:var(--red);animation:bl 1.2s infinite"></div>
           <div class="li-name">${r.place_name}</div>
           <div class="li-dist">${r.distance}m</div>
-          <div class="li-tag" style="background:rgba(255,48,85,.1);border:1px solid rgba(255,48,85,.3);color:var(--red)">24h</div>
+          <div class="li-tag" style="background:rgba(255,48,85,.1);border:1px solid rgba(255,48,85,.3);color:var(--red)">의료기관</div>
         </div>`).join('')+`</div>
-        <div class="erline">🚨 응급전화 119 · 응급의료정보 1339</div>`);
-      res.slice(0,4).forEach(r=>putMarker(+r.y,+r.x,'🚑',r.place_name));
+        <div class="erline">🚨 응급전화 119 · 응급정보 1339</div>`);
+      list.slice(0,4).forEach(r=>putMarker(+r.y,+r.x,'🚑',r.place_name));
       setBadge('ber','b-warn','실시간'); done.er=true;
-    } else {
-      setHTML('der',`<div class="erline">🚨 응급전화 119 · 응급의료정보 1339</div>`);
+    }else{
+      setHTML('der','<div class="erline">🚨 응급전화 119 · 1339</div>');
       setBadge('ber','b-demo','없음');
     }
-  },{location:c,radius:3000});
+  },{location:loc,radius:5000,sort:kakao.maps.services.SortBy.DISTANCE});
 }
+
+function loadAED(btn){
+  if(done.aed)return; disBtn(btn);
+  setBadge('baed','b-load','로딩중');
+  if(!PS)return;
+  PS.keywordSearch('자동심장충격기',(res,st)=>{
+    if(st===kakao.maps.services.Status.OK&&res.length){
+      setHTML('daed',`<div class="crow"><span class="crl">반경 1km</span><span class="crv" style="color:var(--green)">${res.length}개소</span></div>
+        <div class="lst">`+res.slice(0,4).map(r=>`
+        <div class="li" onclick="moveTo(${r.y},${r.x})">
+          <div class="li-dot" style="background:var(--green);animation:bl 1.5s infinite"></div>
+          <div class="li-name">${r.place_name}</div><div class="li-dist">${r.distance}m</div>
+          <div class="li-tag" style="background:rgba(0,255,170,.1);border:1px solid rgba(0,255,170,.25);color:var(--green)">AED</div>
+        </div>`).join('')+`</div>
+        <div style="font-size:9px;color:var(--red);margin-top:3px;font-weight:700">🚨 심정지: 119</div>`);
+      res.slice(0,5).forEach(r=>putMarker(+r.y,+r.x,'💛',r.place_name));
+      setBadge('baed','b-ok','실시간'); done.aed=true;
+    }else{setHTML('daed','<div class="note">주변 AED 없음</div><div style="font-size:9px;color:var(--red);font-weight:700">🚨 119</div>');setBadge('baed','b-demo','없음');}
+  },{location:new kakao.maps.LatLng(uLat,uLng),radius:1000});
+}
+
+function loadFire(btn){
+  if(done.fire)return; disBtn(btn);
+  setBadge('bfire','b-load','로딩중');
+  if(!PS)return;
+  PS.keywordSearch('소방서',(res,st)=>{
+    if(st===kakao.maps.services.Status.OK&&res.length){
+      setHTML('dfire',`<div class="lst">`+res.slice(0,4).map(r=>`
+        <div class="li" onclick="moveTo(${r.y},${r.x})">
+          <div class="li-dot" style="background:var(--ora)"></div>
+          <div class="li-name">${r.place_name}</div><div class="li-dist">${r.distance}m</div>
+          <div class="li-tag" style="background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);color:var(--ora)">소방</div>
+        </div>`).join('')+`</div>`);
+      res.slice(0,4).forEach(r=>putMarker(+r.y,+r.x,'🚒',r.place_name));
+      setBadge('bfire','b-ok','실시간'); done.fire=true;
+    }else{setHTML('dfire','<div class="note">주변 결과 없음</div>');setBadge('bfire','b-demo','없음');}
+  },{location:new kakao.maps.LatLng(uLat,uLng),radius:3000});
+}
+
+function loadPublic(btn){
+  if(done.pub)return; disBtn(btn);
+  setBadge('bpub','b-load','로딩중');
+  if(!PS)return;
+  const c=new kakao.maps.LatLng(uLat,uLng);
+  PS.keywordSearch('주민센터',(r1,s1)=>{
+    const p1=s1===kakao.maps.services.Status.OK?r1.slice(0,3):[];
+    PS.categorySearch('PO3',(r2,s2)=>{
+      const p2=s2===kakao.maps.services.Status.OK?r2.slice(0,3):[];
+      const all=[...p1,...p2];
+      if(all.length){
+        setHTML('dpub',`<div class="lst">`+all.slice(0,5).map(r=>{
+          const lib=p2.includes(r);
+          const col=lib?'var(--vio)':'#a78bfa';
+          return `<div class="li" onclick="moveTo(${r.y},${r.x})">
+            <div class="li-dot" style="background:${col}"></div>
+            <div class="li-name">${lib?'📚':'🏛️'} ${r.place_name}</div>
+            <div class="li-dist">${r.distance}m</div>
+            <div class="li-tag" style="background:${col}22;border:1px solid ${col}44;color:${col}">${lib?'도서관':'주민센터'}</div>
+          </div>`;
+        }).join('')+`</div>`);
+        all.forEach(r=>putMarker(+r.y,+r.x,p2.includes(r)?'📚':'🏛️',r.place_name));
+        setBadge('bpub','b-ok','실시간'); done.pub=true;
+      }else{setHTML('dpub','<div class="note">없음</div>');setBadge('bpub','b-demo','없음');}
+    },{location:c,radius:2000});
+  },{location:c,radius:2000});
+}
+
+/* ════════ 생활기상지수 ════════ */
+async function loadLifeIdx(btn){
+  if(done.life)return; disBtn(btn);
+  setBadge('blife','b-load','로딩중');
+  try{
+    track();
+    const url=`https://apis.data.go.kr/1360000/LivingWthrIdxServiceV4/getUVIdxV4`
+      +`?serviceKey=${KE}&numOfRows=10&pageNo=1&dataType=JSON&areaNo=1100000000&time=${today()}0600`;
+    const d=await(await fetch(url)).json();
+    if(d?.response?.header?.resultCode==='00'&&d.response.body?.items?.item){
+      const raw=d.response.body.items.item;
+      const it=Array.isArray(raw)?raw[0]:raw;
+      const uv=+(it.h0||0);
+      const col=uv<=2?'var(--green)':uv<=5?'var(--yel)':uv<=7?'var(--ora)':'var(--red)';
+      const lbl=uv<=2?'낮음':uv<=5?'보통':uv<=7?'높음':uv<=10?'매우높음':'위험';
+      setHTML('dlife',`<div class="cv" style="color:${col}">${uv}<span class="cu">UV</span></div>
+        <div class="cd">자외선 지수 · ${lbl}</div>
+        <div class="crow" style="margin-top:5px"><span class="crl">야외활동</span><span class="crv" style="color:${col}">${uv<=2?'자유':uv<=5?'모자착용':uv<=7?'차단제':'외출자제'}</span></div>`);
+      setBadge('blife','b-ok','실시간'); done.life=true;
+    }else throw 0;
+  }catch{
+    setHTML('dlife',`<div class="cv" style="color:var(--yel)">4<span class="cu">UV</span></div>
+      <div class="cd">자외선 · 보통 (데모)</div>
+      <div class="note">⚠ https:// 환경에서 실시간 표시</div>`);
+    setBadge('blife','b-demo','데모');
+  }
+}
+
+/* ════════ 식품안전 ════════ */
+async function loadFood(btn){
+  if(done.food)return; disBtn(btn);
+  setBadge('bfood','b-load','로딩중');
+  try{
+    track();
+    const d=await(await fetch(`https://apis.data.go.kr/1471000/FoodSftyMntrInfoService01/getFoodSftyMntrInfo01?serviceKey=${KE}&numOfRows=5&pageNo=1&type=json`)).json();
+    const items=d?.body?.items||d?.response?.body?.items?.item;
+    if(items){
+      const list=Array.isArray(items)?items:[items];
+      setHTML('dfood',`<div class="lst">`+list.slice(0,4).map(it=>`
+        <div class="li">
+          <div class="li-dot" style="background:var(--pink)"></div>
+          <div class="li-name">${it.bplcNm||'업소'}</div>
+          <div class="li-dist">${(it.violtActNm||'위반').slice(0,5)}</div>
+          <div class="li-tag" style="background:rgba(244,114,182,.1);border:1px solid rgba(244,114,182,.3);color:var(--pink)">위반</div>
+        </div>`).join('')+`</div>`);
+      setBadge('bfood','b-ok','실시간'); done.food=true;
+    }else throw 0;
+  }catch{
+    setHTML('dfood',`<div class="crow"><span class="crl">이물혼입</span><span class="crv" style="color:var(--pink)">284건</span></div>
+      <div class="crow"><span class="crl">표시위반</span><span class="crv" style="color:var(--ora)">1,247건</span></div>
+      <div class="crow"><span class="crl">유통기한</span><span class="crv" style="color:var(--yel)">892건</span></div>
+      <div class="note">⚠ 식약처 2024 통계 · 데모</div>`);
+    setBadge('bfood','b-demo','통계');
+  }
+}
+
+/* ════════ KOSHA 함수들 ════════ */
+async function loadKoshaCase(btn){
+  if(btn)disBtn(btn);
+  setBadge('bkcase','b-load','로딩중');
+  try{
+    track();
+    const d=await(await fetch(`https://apis.data.go.kr/1490000/DsafetyService/getDsafetyList?serviceKey=${KE}&numOfRows=5&pageNo=1&dataType=JSON`)).json();
+    if(d?.response?.header?.resultCode==='00'&&d.response.body?.items?.item){
+      const raw=d.response.body.items.item;
+      const list=Array.isArray(raw)?raw:[raw];
+      setHTML('dkcase',`<div class="lst">`+list.slice(0,3).map(it=>`
+        <div class="li" onclick="openCaseModal(${JSON.stringify(it).replace(/'/g,'&#39;').replace(/"/g,'&quot;')})">
+          <div class="li-dot" style="background:var(--kosha)"></div>
+          <div class="li-name">${it.accidentNm||'재해사례'}</div>
+          <div class="li-dist">${(it.occuYr||'').slice(0,4)}</div>
+          <div class="li-tag" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:var(--kosha)">▶</div>
+        </div>`).join('')+`</div>`);
+      setBadge('bkcase','b-ok',`${list.length}건`); done.kcase=true;
+    }else throw 0;
+  }catch{
+    setHTML('dkcase',`<div class="lst">
+      ${[{nm:'건설현장 거푸집 붕괴',yr:'2024',type:'붕괴'},{nm:'제조업 프레스 끼임',yr:'2024',type:'끼임'},{nm:'화학물질 질식',yr:'2023',type:'질식'}].map(c=>`
+      <div class="li" onclick="openCaseSample('${c.nm}','${c.type}')">
+        <div class="li-dot" style="background:var(--kosha)"></div>
+        <div class="li-name">${c.nm}</div><div class="li-dist">${c.yr}</div>
+        <div class="li-tag" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:var(--kosha)">${c.type}</div>
+      </div>`).join('')}</div>
+      <div class="note">⚠ https:// 환경에서 실시간 표시</div>`);
+    setBadge('bkcase','b-demo','샘플');
+  }
+}
+
+function openCaseSample(nm,type){
+  const data={
+    '건설현장 거푸집 붕괴':{원인:'구조물 결함·과다하중',예방:'거푸집 동바리 안전기준 준수, 구조검토 실시',내용:'콘크리트 타설 중 거푸집 동바리 붕괴로 작업자 매몰.'},
+    '제조업 프레스 끼임':{원인:'방호장치 미설치',예방:'양수조작식 안전장치 설치, 전원차단 절차 준수',내용:'프레스 작업 중 방호장치 미작동으로 손가락 절단.'},
+    '화학물질 질식':{원인:'밀폐공간 작업 부주의',예방:'사전 산소농도 측정, 2인 1조 작업',내용:'탱크 내부 청소 중 유해가스 누출로 작업자 의식불명.'},
+  };
+  const s=data[nm]||{원인:'-',예방:'-',내용:'-'};
+  openModal('📋',`재해사례: ${nm}`,`
+    <div class="modal-tag k">${type}</div>
+    <div class="mitem k"><div class="mitem-title">${nm}</div>
+      <div class="mrow"><span class="mrl">발생원인</span><span class="mrv">${s.원인}</span></div>
+      <div class="mrow"><span class="mrl">사고경위</span><span class="mrv" style="text-align:left">${s.내용}</span></div>
+    </div>
+    <div style="padding:8px;background:rgba(0,255,170,.05);border:1px solid rgba(0,255,170,.15);border-radius:7px;margin-top:6px">
+      <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:3px">✅ 예방대책</div>
+      <div style="font-size:10px;color:var(--mid)">${s.예방}</div>
+    </div>`,true);
+}
+
+async function loadKoshaStat(btn){
+  if(btn)disBtn(btn);
+  setBadge('bkstat','b-load','로딩중');
+  try{
+    track();
+    const d=await(await fetch(`https://apis.data.go.kr/1490000/SangjaeService/getSangjaeList?serviceKey=${KE}&numOfRows=1&pageNo=1&dataType=JSON&year=2023`)).json();
+    if(d?.response?.header?.resultCode==='00'&&d.response.body?.items?.item){
+      const raw=d.response.body.items.item;const it=Array.isArray(raw)?raw[0]:raw;
+      setHTML('dkstat',`
+        <div class="danger" style="border-color:rgba(245,158,11,.2);background:repeating-linear-gradient(-45deg,rgba(245,158,11,.02),rgba(245,158,11,.02) 5px,transparent 5px,transparent 15px)">
+          <div class="dh" style="color:var(--kosha)">📈 산업재해 (${it.year||2023})</div>
+          <div class="crow"><span class="crl">재해자</span><span class="crv" style="color:var(--ora)">${(+it.wrkrCnt||0).toLocaleString()}명</span></div>
+          <div class="crow"><span class="crl">사망자</span><span class="crv" style="color:var(--red)">${(+it.deathCnt||0).toLocaleString()}명</span></div>
+          <div class="crow"><span class="crl">재해율</span><span class="crv" style="color:var(--yel)">${it.injuryRate||'--'}%</span></div>
+        </div>`);
+      setBadge('bkstat','b-ok','실시간'); done.kstat=true;
+    }else throw 0;
+  }catch{
+    setHTML('dkstat',`<div class="danger" style="border-color:rgba(245,158,11,.2)">
+      <div class="dh" style="color:var(--kosha)">📈 2023 산업재해</div>
+      <div class="crow"><span class="crl">재해자</span><span class="crv" style="color:var(--ora)">136,165명</span></div>
+      <div class="crow"><span class="crl">사망자</span><span class="crv" style="color:var(--red)">2,293명</span></div>
+      <div class="crow"><span class="crl">재해율</span><span class="crv" style="color:var(--yel)">0.65%</span></div>
+    </div>
+    <div class="note">⚠ 데모 데이터</div>`);
+    setBadge('bkstat','b-demo','통계');
+  }
+}
+
+function openStatDetail(){
+  openModal('📈','산업재해 상세 통계',`
+    <div class="modal-tag k">2023년 기준</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+      ${[{l:'재해자',v:'136,165명',c:'var(--ora)'},{l:'사망자',v:'2,293명',c:'var(--red)'},{l:'재해율',v:'0.65%',c:'var(--yel)'},{l:'사망만인율',v:'1.65‰',c:'var(--yel)'}]
+        .map(s=>`<div style="padding:8px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.15);border-radius:8px;text-align:center">
+          <div style="font-size:14px;font-weight:900;color:${s.c}">${s.v}</div>
+          <div style="font-size:9px;color:var(--dim);margin-top:2px">${s.l}</div>
+        </div>`).join('')}
+    </div>
+    <div class="mitem k"><div class="mitem-title">재해유형별</div>
+      ${[{nm:'넘어짐',pct:'22.1%',c:'var(--yel)'},{nm:'떨어짐',pct:'15.3%',c:'var(--ora)'},{nm:'끼임',pct:'12.7%',c:'var(--red)'},{nm:'부딪힘',pct:'10.4%',c:'var(--teal)'},{nm:'기타',pct:'39.5%',c:'var(--dim)'}]
+        .map(t=>`<div style="margin:3px 0">
+          <div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:1px">
+            <span style="color:var(--dim)">${t.nm}</span><span style="color:${t.c}">${t.pct}</span>
+          </div>
+          <div style="height:3px;background:rgba(255,255,255,.04);border-radius:2px">
+            <div style="height:100%;width:${t.pct};background:${t.c};border-radius:2px"></div>
+          </div></div>`).join('')}
+    </div>`,true);
+}
+
+async function loadKoshaConst(btn){
+  if(btn)disBtn(btn);
+  setBadge('bkconst','b-load','로딩중');
+  try{
+    track();
+    const d=await(await fetch(`https://apis.data.go.kr/1490000/MajorAccdntService/getMajorAccdntList?serviceKey=${KE}&numOfRows=5&pageNo=1&dataType=JSON`)).json();
+    if(d?.response?.header?.resultCode==='00'&&d.response.body?.items?.item){
+      const raw=d.response.body.items.item;const list=Array.isArray(raw)?raw:[raw];
+      setHTML('dkconst',`<div class="eqlist">`+list.slice(0,3).map(it=>{
+        const dead=+(it.dethCnt||0);const col=dead>=2?'var(--red)':dead>=1?'var(--ora)':'var(--yel)';
+        return `<div class="eqi" onclick="openConstModal('${encodeURIComponent(it.bizplcNm||'')}','${it.accDt||''}','${dead}','${it.sido||''}')">
+          <div class="eqmag" style="color:${col};border-color:${col}">${dead}명</div>
+          <div style="flex:1"><div class="eqloc">${it.bizplcNm||'사업장'}</div>
+          <div class="eqtm">${(it.accDt||'').slice(0,10)} · ${it.sido||''}</div></div>
+          <span style="font-size:9px;color:var(--kosha)">▶</span></div>`;
+      }).join('')+`</div>`);
+      setBadge('bkconst','b-warn',`${list.length}건`); done.kconst=true;
+    }else throw 0;
+  }catch{
+    setHTML('dkconst',`<div class="eqlist">
+      ${[{nm:'아파트 신축현장',dead:2,date:'2025-03-08',sido:'경기'},{nm:'도로공사 현장',dead:1,date:'2025-03-05',sido:'서울'}].map(it=>{
+        const col=it.dead>=2?'var(--red)':'var(--ora)';
+        return `<div class="eqi" onclick="openConstModal('${it.nm}','${it.date}','${it.dead}','${it.sido}')">
+          <div class="eqmag" style="color:${col};border-color:${col}">${it.dead}명</div>
+          <div style="flex:1"><div class="eqloc">${it.nm}</div><div class="eqtm">${it.date} · ${it.sido}</div></div>
+          <span style="font-size:9px;color:var(--kosha)">▶</span></div>`;}).join('')}
+    </div><div class="note">⚠ 데모</div>`);
+    setBadge('bkconst','b-demo','샘플');
+  }
+}
+
+function openConstModal(nm,date,dead,sido){
+  openModal('🏗️','건설업 중대재해 분석',`
+    <div class="modal-tag k">중대재해 상세</div>
+    <div class="mitem k"><div class="mitem-title">${decodeURIComponent(nm)}</div>
+      <div class="mrow"><span class="mrl">발생일</span><span class="mrv">${date}</span></div>
+      <div class="mrow"><span class="mrl">지역</span><span class="mrv">${sido}</span></div>
+      <div class="mrow"><span class="mrl">사망자</span><span class="mrv" style="color:var(--red)">${dead}명</span></div>
+    </div>
+    <div class="mitem k"><div class="mitem-title">재해유형 분포</div>
+      ${[{t:'떨어짐',p:'48.3%',c:'var(--red)'},{t:'깔림',p:'12.1%',c:'var(--ora)'},{t:'부딪힘',p:'10.8%',c:'var(--yel)'},{t:'기타',p:'28.8%',c:'var(--dim)'}]
+        .map(t=>`<div style="margin:3px 0"><div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:1px"><span style="color:var(--dim)">${t.t}</span><span style="color:${t.c}">${t.p}</span></div>
+          <div style="height:3px;background:rgba(255,255,255,.04)"><div style="height:100%;width:${t.p};background:${t.c}"></div></div></div>`).join('')}
+    </div>
+    <div style="padding:7px;background:rgba(0,255,170,.05);border:1px solid rgba(0,255,170,.15);border-radius:7px">
+      <div style="font-size:9px;font-weight:700;color:var(--green)">✅ 예방조치</div>
+      <div style="font-size:9px;color:var(--mid);margin-top:3px;line-height:1.7">• 위험성평가 매일 실시<br>• 추락방지망·안전난간 설치<br>• 안전모·안전벨트 착용<br>• 중대재해처벌법 준수</div>
+    </div>`,true);
+}
+
+async function loadMajor(btn){
+  if(done.maj)return; disBtn(btn);
+  setBadge('bmaj','b-load','로딩중');
+  try{
+    track();
+    const d=await(await fetch(`https://apis.data.go.kr/1490000/MajorAccdntService/getMajorAccdntList?serviceKey=${KE}&numOfRows=5&pageNo=1&dataType=JSON`)).json();
+    if(d?.response?.header?.resultCode==='00'&&d.response.body?.items?.item){
+      const raw=d.response.body.items.item;const list=Array.isArray(raw)?raw:[raw];
+      setHTML('dmaj',`<div class="eqlist">`+list.slice(0,4).map(it=>{
+        const dead=+(it.dethCnt||0);const col=dead>=2?'var(--red)':dead>=1?'var(--ora)':'var(--yel)';
+        return `<div class="eqi"><div class="eqmag" style="color:${col};border-color:${col}">${dead}명</div>
+          <div><div class="eqloc">${it.bizplcNm||'사업장'}</div>
+          <div class="eqtm">${(it.accDt||'').slice(0,10)} · ${it.sido||''}</div></div></div>`;
+      }).join('')+`</div>`);
+      setBadge('bmaj','b-warn',`${list.length}건`); done.maj=true;
+    }else throw 0;
+  }catch{
+    setHTML('dmaj',`<div class="eqlist">
+      <div class="eqi"><div class="eqmag" style="color:var(--red);border-color:var(--red)">2명</div><div><div class="eqloc">건설현장 추락 (데모)</div><div class="eqtm">2025-03-08 · 경기</div></div></div>
+      <div class="eqi"><div class="eqmag" style="color:var(--ora);border-color:var(--ora)">1명</div><div><div class="eqloc">제조업 끼임 (데모)</div><div class="eqtm">2025-03-06 · 인천</div></div></div>
+    </div><div class="note">⚠ 데모</div>`);
+    setBadge('bmaj','b-demo','데모');
+  }
+}
+
+async function loadHeat(btn){
+  if(done.heat)return; disBtn(btn);
+  setBadge('bheat','b-load','로딩중');
+  try{
+    track();
+    const d=await(await fetch(`https://apis.data.go.kr/1790387/HeatIllnessService/getHeatIllnessList?serviceKey=${KE}&numOfRows=1&pageNo=1&dataType=JSON`)).json();
+    if(d?.response?.header?.resultCode==='00'&&d.response.body?.items?.item){
+      const it=d.response.body.items.item;const item=Array.isArray(it)?it[0]:it;
+      setHTML('dheat',`<div class="cv" style="color:var(--red)">${(+item.ptNo||0).toLocaleString()}<span class="cu">명</span></div>
+        <div class="cd">올해 누적 온열질환자</div>
+        <div class="crow" style="margin-top:5px"><span class="crl">사망자</span><span class="crv" style="color:var(--red)">${item.dethNo||0}명</span></div>
+        <div class="crow"><span class="crl">주요발생</span><span class="crv" style="color:var(--ora)">실외작업장</span></div>`);
+      setBadge('bheat','b-ok','실시간'); done.heat=true;
+    }else throw 0;
+  }catch{
+    setHTML('dheat',`<div class="cv" style="color:var(--red)">2,818<span class="cu">명</span></div>
+      <div class="cd">2024 누적 온열질환자 (데모)</div>
+      <div class="crow"><span class="crl">사망자</span><span class="crv" style="color:var(--red)">32명</span></div>
+      <div class="note">⚠ 데모</div>`);
+    setBadge('bheat','b-demo','데모');
+  }
+}
+
+async function loadKoshaEdu(btn){
+  if(btn)disBtn(btn);
+  setBadge('bkedu','b-load','로딩중');
+  try{
+    track();
+    const d=await(await fetch(`https://apis.data.go.kr/1490000/EduService/getEduList?serviceKey=${KE}&numOfRows=5&pageNo=1&dataType=JSON`)).json();
+    if(d?.response?.header?.resultCode==='00'&&d.response.body?.items?.item){
+      const raw=d.response.body.items.item;const list=Array.isArray(raw)?raw:[raw];
+      setHTML('dkedu',`<div class="lst">`+list.slice(0,3).map(it=>`
+        <div class="li" onclick="openEduModal('${encodeURIComponent(it.eduNm||'')}','${it.eduType||''}','${it.fileUrl||''}')">
+          <div class="li-dot" style="background:var(--green)"></div>
+          <div class="li-name">${it.eduNm||'교육자료'}</div>
+          <div class="li-dist">${it.eduType||'자료'}</div>
+          <div class="li-tag" style="background:rgba(0,255,170,.1);border:1px solid rgba(0,255,170,.25);color:var(--green)">▶</div>
+        </div>`).join('')+`</div>`);
+      setBadge('bkedu','b-ok',`${list.length}건`); done.kedu=true;
+    }else throw 0;
+  }catch{
+    setHTML('dkedu',`<div class="lst">
+      ${[{nm:'추락재해 예방',type:'영상'},{nm:'화학물질 취급',type:'자료'},{nm:'밀폐공간 작업',type:'영상'}].map(e=>`
+      <div class="li" onclick="openEduModal('${e.nm}','${e.type}','')">
+        <div class="li-dot" style="background:var(--green)"></div>
+        <div class="li-name">${e.nm}</div><div class="li-dist">${e.type}</div>
+        <div class="li-tag" style="background:rgba(0,255,170,.1);border:1px solid rgba(0,255,170,.25);color:var(--green)">▶</div>
+      </div>`).join('')}</div>
+      <div class="note">⚠ 데모</div>`);
+    setBadge('bkedu','b-demo','샘플');
+  }
+}
+function openEduModal(nm,type,url){
+  const nm_d=decodeURIComponent(nm);
+  openModal('📚',`교육자료: ${nm_d}`,`
+    <div class="modal-tag k">${type||'교육자료'}</div>
+    <div class="mitem k"><div class="mitem-title">${nm_d}</div>
+      <div class="mitem-sub">① 재해유형 및 원인 이해<br>② 법적 의무사항 확인<br>③ 위험성평가 실습<br>④ 예방조치 및 비상대응</div>
+    </div>
+    ${url?`<a href="${url}" target="_blank" class="lbtn green" style="text-decoration:none;margin-top:6px">📥 자료 다운로드</a>`:''}
+    <div style="text-align:center;margin-top:10px">
+      <a href="https://kosha.or.kr/kosha/education/cyberMain.do" target="_blank"
+         style="padding:6px 16px;background:rgba(0,255,170,.1);border:1px solid rgba(0,255,170,.3);
+         border-radius:8px;color:var(--green);font-size:11px;font-weight:700;text-decoration:none">
+        🌐 KOSHA e-러닝센터
+      </a>
+    </div>`,true);
+}
+
+async function loadKoshaMap(btn){
+  if(btn)disBtn(btn);
+  setBadge('bkmap','b-load','로딩중');
+  const hotspots=[
+    {lat:37.5665,lng:126.9780,nm:'서울 제조업',cnt:1247},{lat:37.400,lng:126.920,nm:'안산 공단',cnt:2891},
+    {lat:35.179,lng:129.075,nm:'부산 조선업',cnt:3214},{lat:35.54,lng:129.31,nm:'울산 화학·조선',cnt:4127},
+    {lat:37.456,lng:126.705,nm:'인천 부평',cnt:1893},{lat:37.270,lng:127.050,nm:'수원 산단',cnt:1563},
+    {lat:35.871,lng:128.601,nm:'대구 기계',cnt:1204},
+  ];
+  hotspots.forEach(h=>{
+    if(map2){
+      const sz=Math.max(22,Math.min(52,h.cnt/100));
+      new kakao.maps.CustomOverlay({
+        position:new kakao.maps.LatLng(h.lat,h.lng),
+        content:`<div title="${h.nm}: ${h.cnt.toLocaleString()}건/년" style="width:${sz}px;height:${sz}px;
+          background:rgba(245,158,11,${Math.min(.75,h.cnt/5000+.2)});border:2px solid rgba(245,158,11,.85);
+          border-radius:50%;display:flex;align-items:center;justify-content:center;
+          font-size:9px;color:#fff;font-weight:700;cursor:pointer;
+          box-shadow:0 0 14px rgba(245,158,11,.5)"
+          onclick="showInfo('${h.nm}: 연간 ${h.cnt.toLocaleString()}건')">${(h.cnt/1000).toFixed(1)}k</div>`
+      }).setMap(map2);
+    }
+  });
+  if(map2){map2.setCenter(new kakao.maps.LatLng(36.5,127.5));map2.setLevel(10);}
+  setHTML('dkmap',`<div class="crow"><span class="crl">표시지역</span><span class="crv" style="color:var(--teal)">${hotspots.length}개소</span></div>
+    <div class="crow"><span class="crl">최다재해</span><span class="crv" style="color:var(--ora)">울산 화학·조선</span></div>
+    <div style="font-size:9px;color:var(--dim);margin-top:3px">산업재해 밀집지역 지도 표시</div>`);
+  setBadge('bkmap','b-ok','지도표시'); done.kmap=true;
+}
+
+async function loadKoshaFile(btn){
+  if(btn)disBtn(btn);
+  setBadge('bkfile','b-load','로딩중');
+  try{
+    track();
+    const d=await(await fetch(`https://apis.data.go.kr/1490000/DsafetyService/getDsafetyFileList?serviceKey=${KE}&numOfRows=5&pageNo=1&dataType=JSON`)).json();
+    if(d?.response?.header?.resultCode==='00'&&d.response.body?.items?.item){
+      const raw=d.response.body.items.item;const list=Array.isArray(raw)?raw:[raw];
+      setHTML('dkfile',`<div class="lst">`+list.slice(0,3).map(it=>`
+        <div class="li">
+          <div class="li-dot" style="background:var(--pink)"></div>
+          <div class="li-name">${it.fileNm||'첨부파일'}</div>
+          <div class="li-dist">${it.fileType||'PDF'}</div>
+          ${it.fileUrl?`<a href="${it.fileUrl}" target="_blank" class="li-tag" style="background:rgba(244,114,182,.1);border:1px solid rgba(244,114,182,.25);color:var(--pink);text-decoration:none">📥</a>`
+          :`<div class="li-tag" style="background:rgba(244,114,182,.1);border:1px solid rgba(244,114,182,.25);color:var(--pink)">파일</div>`}
+        </div>`).join('')+`</div>`);
+      setBadge('bkfile','b-ok',`${list.length}건`); done.kfile=true;
+    }else throw 0;
+  }catch{
+    setHTML('dkfile',`<div class="lst">
+      ${[{nm:'건설현장 추락재해 사례집 2024',t:'PDF'},{nm:'화학물질 질식재해 분석보고서',t:'PDF'},{nm:'제조업 끼임재해 예방자료',t:'PPT'}].map(f=>`
+      <div class="li">
+        <div class="li-dot" style="background:var(--pink)"></div>
+        <div class="li-name">${f.nm}</div><div class="li-dist">${f.t}</div>
+        <a href="https://kosha.or.kr" target="_blank" class="li-tag" style="background:rgba(244,114,182,.1);border:1px solid rgba(244,114,182,.25);color:var(--pink);text-decoration:none">📥</a>
+      </div>`).join('')}</div>
+      <div class="note">⚠ https:// 환경에서 다운로드</div>`);
+    setBadge('bkfile','b-demo','샘플');
+  }
+}
+
+/* MSDS/법령 검색 */
+function renderMsdsSearch(){
+  const popular=['톨루엔','아세톤','염산','황산','메탄올','벤젠','암모니아'];
+  return `
+    <div class="modal-tag k">🔬 물질안전보건자료</div>
+    <div class="ksearch">
+      <input id="msdsInput" type="text" placeholder="예: 톨루엔, 아세톤, 염산...">
+      <button onclick="searchMsds()">🔍 검색</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">
+      ${popular.map(p=>`<button onclick="document.getElementById('msdsInput').value='${p}';searchMsds()"
+        style="padding:2px 9px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);
+        border-radius:10px;color:var(--vio);font-size:9px;cursor:pointer">${p}</button>`).join('')}
+    </div>
+    <div id="msdsResult"><div style="text-align:center;padding:16px;color:var(--dim);font-size:11px">검색어를 입력하세요</div></div>`;
+}
+async function searchMsds(){
+  const kw=document.getElementById('msdsInput')?.value?.trim();
+  if(!kw)return;
+  setHTML('msdsResult','<div class="modal-loading">🔍 검색 중...</div>');
+  try{
+    track();
+    const d=await(await fetch(`https://apis.data.go.kr/1490000/MSDSInfoService/getMSDSInfo?serviceKey=${KE}&numOfRows=8&pageNo=1&dataType=JSON&chemNmKor=${encodeURIComponent(kw)}`)).json();
+    const raw=d?.response?.body?.items?.item;
+    if(raw){
+      const list=Array.isArray(raw)?raw:[raw];
+      setHTML('msdsResult',`<div style="font-size:9px;color:var(--dim);margin-bottom:6px">${list.length}건</div>`
+        +list.map(it=>`<div class="mitem k">
+          <div class="mitem-title">${it.chemNmKor||kw}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-top:4px">
+            <div style="font-size:9px"><span style="color:var(--dim)">CAS</span> <span style="color:var(--txt);font-family:var(--fm)">${it.casNo||'-'}</span></div>
+            <div style="font-size:9px"><span style="color:var(--dim)">위험도</span> <span style="color:${it.ghsGrade==='위험'?'var(--red)':'var(--yel)'}">${it.ghsGrade||'-'}</span></div>
+            <div style="font-size:9px"><span style="color:var(--dim)">TWA</span> <span style="color:var(--teal)">${it.twaPpm?it.twaPpm+'ppm':'-'}</span></div>
+          </div>
+          <div class="mitem-sub" style="margin-top:4px">${(it.safHndGd||'').slice(0,100)||'KOSHA 사이트 참고'}</div>
+          ${it.msdsFileUrl?`<a href="${it.msdsFileUrl}" target="_blank" style="font-size:9px;color:var(--kosha)">📥 MSDS 원문</a>`:''}
+        </div>`).join(''));
+    }else throw 0;
+  }catch{
+    setHTML('msdsResult',`<div class="mitem k">
+      <div class="mitem-title">주요 화학물질 참고정보</div>
+      <div class="mitem-sub">
+        ${[{n:'톨루엔',c:'108-88-3',g:'위험',t:'50ppm'},{n:'아세톤',c:'67-64-1',g:'경고',t:'500ppm'},{n:'염산',c:'7647-01-0',g:'위험',t:'1ppm'}]
+          .map(x=>`<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:var(--txt);font-size:10px">${x.n}</span>
+            <span style="font-size:9px;color:var(--dim)"> CAS:${x.c} TWA:${x.t}</span></div>`).join('')}
+      </div>
+      <a href="https://msds.kosha.or.kr" target="_blank" style="font-size:9px;color:var(--kosha);display:block;margin-top:4px">🔗 msds.kosha.or.kr 직접검색</a>
+    </div>`);
+  }
+  document.getElementById('msdsInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')searchMsds();});
+}
+
+function renderLawSearch(){
+  const kws=['안전관리자','위험물','추락방지','화재예방','특수건강진단'];
+  return `
+    <div class="modal-tag k">⚖️ 안전보건 법령</div>
+    <div class="ksearch">
+      <input id="lawInput" type="text" placeholder="예: 안전관리자, 위험물...">
+      <button onclick="searchLaw()">🔍 검색</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">
+      ${kws.map(k=>`<button onclick="document.getElementById('lawInput').value='${k}';searchLaw()"
+        style="padding:2px 9px;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.25);
+        border-radius:10px;color:#60a5fa;font-size:9px;cursor:pointer">${k}</button>`).join('')}
+    </div>
+    <div id="lawResult">
+      <div class="mitem k">
+        <div class="mitem-title">📜 주요 법령 체계</div>
+        <div class="mitem-sub">
+          <strong style="color:var(--kosha)">산업안전보건법</strong> — 사업장 안전·보건 기준<br>
+          <strong style="color:#60a5fa">산업안전보건기준에 관한 규칙</strong> — 세부 기술기준<br>
+          <strong style="color:var(--green)">중대재해 처벌 등에 관한 법률</strong><br>
+          <a href="https://www.law.go.kr" target="_blank" style="color:#60a5fa;font-size:9px">🔗 law.go.kr 법령검색</a>
+        </div>
+      </div>
+    </div>`;
+}
+async function searchLaw(){
+  const kw=document.getElementById('lawInput')?.value?.trim();
+  if(!kw)return;
+  setHTML('lawResult','<div class="modal-loading">⚖️ 검색 중...</div>');
+  try{
+    track();
+    const d=await(await fetch(`https://apis.data.go.kr/1490000/LawService/getLawInfo?serviceKey=${KE}&numOfRows=5&pageNo=1&dataType=JSON&searchWord=${encodeURIComponent(kw)}`)).json();
+    const raw=d?.response?.body?.items?.item;
+    if(raw){
+      const list=Array.isArray(raw)?raw:[raw];
+      setHTML('lawResult',list.map(it=>`<div class="mitem k">
+        <div class="mitem-title">${it.lawNm||kw}</div>
+        <div class="mitem-sub">${(it.summary||'').slice(0,120)}</div>
+        ${it.lawUrl?`<a href="${it.lawUrl}" target="_blank" style="font-size:9px;color:#60a5fa">🔗 원문 보기</a>`:''}
+      </div>`).join(''));
+    }else throw 0;
+  }catch{
+    setHTML('lawResult',`<div class="mitem k">
+      <div class="mitem-title">"${kw}" 관련 조항</div>
+      <div class="mitem-sub">산업안전보건법 관련 조항을 국가법령정보센터에서 검색하세요.<br>
+        <a href="https://www.law.go.kr" target="_blank" style="color:#60a5fa">🔗 law.go.kr</a>
+      </div>
+    </div>`);
+  }
+  document.getElementById('lawInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')searchLaw();});
+}
+
 </script>
 </body>
 </html>
