@@ -123,15 +123,18 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   height:calc(100dvh - var(--hdr) - var(--loc) - var(--tab));
   overflow:hidden
 }
-/* display:none 대신 visibility로 처리 → 지도 크기0 문제 해결 */
+/* 탭 전환: 비활성 탭은 크기 유지하되 완전히 숨김 */
 .tab-content{
-  position:absolute;top:0;left:0;width:100%;height:100%;
-  visibility:hidden;pointer-events:none;
-  display:grid;grid-template-columns:var(--sidebar) 1fr var(--sidebar)
+  display:grid;
+  grid-template-columns:var(--sidebar) 1fr var(--sidebar);
+  width:100%;height:100%;
+  position:absolute;top:0;left:0;
+  opacity:0;pointer-events:none;z-index:0;
+  /* 지도 크기0 방지: visibility 대신 opacity+pointer-events 사용 */
 }
 .tab-content.active{
-  visibility:visible;pointer-events:all;
-  position:relative
+  opacity:1;pointer-events:all;z-index:1;
+  position:relative;
 }
 
 /* 패널 */
@@ -365,13 +368,32 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   .tab-desc{display:none}
   .tab-badge{display:none}
   /* 모바일 레이아웃 */
-  .main-wrap{height:auto;overflow:visible}
-  .tab-content{display:block;position:relative;height:auto;grid-template-columns:1fr;visibility:hidden;pointer-events:none}
-  .tab-content.active{visibility:visible;pointer-events:all;height:auto}
-  .mapwrap{height:55vw;min-height:240px;max-height:360px;
-    position:sticky;top:calc(var(--hdr) + var(--loc) + var(--tab));z-index:15;
-    border-bottom:2px solid var(--bd)}
-  #map,#map2{height:100%}
+  .main-wrap{height:auto;overflow:visible;position:static}
+  /* 모바일: 탭 전환을 display로 처리 (position:absolute 해제) */
+  .tab-content{
+    display:none !important;
+    position:static;height:auto;
+    grid-template-columns:1fr;
+    opacity:1;pointer-events:all;
+  }
+  .tab-content.active{
+    display:block !important;
+    position:static;height:auto;
+  }
+  /* 모바일 지도: sticky + 명시적 높이 */
+  .mapwrap{
+    height:55vw;min-height:240px;max-height:360px;
+    position:sticky;
+    top:calc(var(--hdr) + var(--loc) + var(--tab));
+    z-index:15;
+    border-bottom:2px solid var(--bd);
+  }
+  /* map2도 map과 동일하게 높이 강제 */
+  #map,#map2{
+    width:100% !important;
+    height:100% !important;
+    min-height:200px;
+  }
   .pl,.pr{height:auto;overflow:visible;border:none;border-top:1px solid var(--bd);padding:8px}
   .panel{height:auto;overflow:visible;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px}
   .sec{grid-column:1/-1}
@@ -887,17 +909,32 @@ function switchTab(tab){
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   document.getElementById('content-'+tab).classList.add('active');
+
   if(tab==='kosha'){
     mirrorWeatherAir();
-    // 지도 resize를 여러 타이밍에 강제 실행 (visibility 전환 후 레이아웃 확정까지 대기)
-    [50,150,300,600,1000].forEach(ms=>setTimeout(()=>{
+    // 모바일: map2 컨테이너 높이를 JS로 명시 후 resize
+    function resizeMap2(){
+      const wrap=document.querySelector('#content-kosha .mapwrap');
+      const m2el=document.getElementById('map2');
+      if(wrap&&m2el){
+        const h=wrap.offsetHeight||Math.min(360,window.innerWidth*0.55);
+        m2el.style.height=h+'px';
+      }
       if(map2){
         kakao.maps.event.trigger(map2,'resize');
         map2.setCenter(new kakao.maps.LatLng(uLat,uLng));
       }
-    },ms));
+    }
+    // 여러 타이밍에 실행 (CSS 전환 완료 대기)
+    [30,100,250,500,900,1500].forEach(ms=>setTimeout(resizeMap2,ms));
   } else {
-    setTimeout(()=>{if(map)kakao.maps.event.trigger(map,'resize');},50);
+    function resizeMap1(){
+      if(map){
+        kakao.maps.event.trigger(map,'resize');
+        map.setCenter(new kakao.maps.LatLng(uLat,uLng));
+      }
+    }
+    [30,100,300].forEach(ms=>setTimeout(resizeMap1,ms));
   }
 }
 function mirrorWeatherAir(){
@@ -935,7 +972,12 @@ function initMap(){
 
 /* ── MAP 2 (산업안전) ── */
 function initMap2(){
-  map2=new kakao.maps.Map(document.getElementById('map2'),{
+  // 모바일: map2 컨테이너 높이 명시 (탭이 숨겨진 상태라도 초기화 가능하게)
+  const m2el=document.getElementById('map2');
+  if(m2el&&m2el.offsetHeight===0){
+    m2el.style.height='300px';
+  }
+  map2=new kakao.maps.Map(m2el,{
     center:new kakao.maps.LatLng(uLat,uLng),level:7
   });
   PS2=new kakao.maps.services.Places();
